@@ -1,11 +1,12 @@
 import { drawPlayer, updatePlayer } from "./player.js";
-import { drawPlatforms } from "./platform.js";
+import { createPlatforms, drawPlatforms } from "./platform.js";
 import {
   drawEnemies,
   updateEnemy,
   tickEnemySpawn,
   spawnEnemy,
 } from "./enemy.js";
+import { isColliding } from "./collision.js";
 //import platform from "platform";
 
 let canvas = document.getElementById("canvas");
@@ -23,10 +24,13 @@ function initGame(gameWidth, gameHeight) {
     player: {
       x: gameWidth / 2 - 25,
       y: gameHeight - 100,
-      velY: 0,
       width: 25,
       height: 35,
       speed: 300,
+      velocity: {
+        x: 0,
+        y: 1,
+      },
       keys: {
         left: false,
         right: false,
@@ -50,8 +54,7 @@ function initGame(gameWidth, gameHeight) {
 
 window.addEventListener("keydown", (event) => {
   if (event.key === "w") {
-    game.player.keys.jump = true;
-    game.player.y -= 10;
+      game.player.velocity.y -= 5;     
   }
 
   if (event.key === "a") {
@@ -62,6 +65,10 @@ window.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener("keyup", (event) => {
+  if (event.key === "w") {
+      game.player.velocity.y += 2;
+  }
+
   if (event.key === "a") {
     game.player.keys.left = false;
   }
@@ -80,8 +87,18 @@ function tick(ctx, game) {
 
   drawPlayer(ctx, game.player);
   updatePlayer(game);
+  // isColliding(game.player, canvas.height);
+  if (game.player.y + game.player.height + game.player.velocity.y >= canvas.height - 30) {
+    game.player.velocity.y = 0;
+  }
+  // kollision mellan spelare och en av platformarna. Skall försöka skapa platformar dynamiskt så borde det gå att använda detta för alla platformar
+  if (game.player.y + game.player.height <= 400 && game.player.y + game.player.height + game.player.velocity.y >= 400 && game.player.x + game.player.width >= 0 && game.player.x <= 0 + 300) {
+    game.player.velocity.y = 0;
+  }
 
-
+  game.platforms.length = 5;
+  // createPlatforms(game)
+  // console.log(game.platforms);
   drawPlatforms(ctx, game.platforms);
 
   drawEnemies(ctx, game);
@@ -94,3 +111,8 @@ function tick(ctx, game) {
 
   requestAnimationFrame(() => tick(ctx, game));
 }
+
+
+// ************ TODO ******************
+// X lägg in gravitation på spelare/fiender så de ramlar ner på platformar 
+// rita in platformar mer dynamisk, dock skall väl platformana vara fasta så vi kanske bara hårdkodar in dessa?
