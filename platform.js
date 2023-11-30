@@ -1,39 +1,27 @@
 export function drawPlatforms(ctx, game) {
-  /* for (let platforms of game.platforms) {
-  let indexX = platforms.platform.x[Math.floor(Math.random() * platforms.platform.x.length)]
-  let indexY = platforms.platform.y[Math.floor(Math.random() * platforms.platform.y.length)]
-
-  ctx.fillStyle = "green"
-  ctx.fillRect(platforms.platform.x[indexX], platforms.platform.y[indexY], platforms.platform.width, platforms.platform.height )
-}
-*/
-
   // "marken"
   ctx.fillStyle = 'brown';
   ctx.fillRect(0, 470, 800, 30);
 
-  // höger platformar
-  ctx.fillStyle = 'green';
-  ctx.fillRect(800, 200, -300, 10);
-  ctx.fillRect(800, 350, -300, 10);
-  ctx.fillRect(800, 100, -300, 10);
-
-  //vänster platformar
-  ctx.fillRect(0, 200, 200, 10);
-  ctx.fillRect(0, 400, 300, 10);
-  ctx.fillRect(0, 100, 300, 10);
-
-  //mitten
-  ctx.fillRect(270, 200, 150, 10);
+  game.platforms.forEach((platform) => {
+    ctx.fillStyle = 'green';
+    ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+  });
 }
 
-export function createPlatforms(game) {
-  let platform = {
-    x: [0, 400, 800],
-    y: [100, 200, 300, 400],
-    width: 200,
-    height: 10,
-  };
-
-  game.platforms.push(platform);
-}
+// får platformen att röra sig uppåt men fastnar på toppen, antar jag måste hitta rätt värden men min hjärna verkar vara alldeles för trög idag.
+// export function movePlatforms(ctx, game) {
+//   let platform = game.platforms[7];
+//   console.log(platform);
+//   if (platform.y < 400 && platform.y > 100) {
+//     platform.velocity = 100 * game.deltaTime;
+//     platform.y -= platform.velocity;
+//     console.log('kör uppåt');
+//   } else if (game.platforms[7].y > 100) {
+//     platform.velocity = 10 * game.deltaTime;
+//     platform.y += platform.velocity;
+//     console.log('kör nedåt');
+//   } else {
+//     platform.velocity = 0;
+//   }
+// }
