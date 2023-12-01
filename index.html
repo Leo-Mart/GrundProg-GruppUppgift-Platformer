@@ -6,15 +6,13 @@
     <title>
       Legally Disctinct Platformer involving Plumber-like characters
     </title>
-    <style>
-      canvas {
-        border: 2px solid black;
-        /*height: 600px;
-            width: 600px;*/
-      }
-    </style>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <div style="display: none">
+      <img id="enemySprite" src="./images/enemy_walk.png" />
+      <img id="playerSprite" src="./images/player_spritesheet.png" />
+    </div>
     <canvas id="canvas"></canvas>
     <script type="module" src="player.js"></script>
     <script type="module" src="enemy.js"></script>

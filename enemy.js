@@ -1,6 +1,22 @@
+//let enemyImg = document.getElementById('enemySprite');
+
+//import { enemyImg } from './main.js';
+
 export function drawEnemies(ctx, game) {
   for (let enemy of game.enemies) {
     ctx.fillStyle = 'red';
+
+    /* ctx.drawImage(
+      enemyImg,
+      0,
+      0,
+      enemy.width,
+      enemy.height,
+      enemy.x,
+      enemy.y,
+      enemy.width,
+      enemy.height
+    ); */
     ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
   }
 }
@@ -22,7 +38,7 @@ export function updateEnemy(game) {
       enemy.velocity.y = 0;
     }
     enemy.y += enemy.velocity.y;
-    enemy.velocity.y += 0.1;
+    enemy.velocity.y += 100 * game.deltaTime;
   }
 }
 

@@ -1,18 +1,12 @@
-export function isColliding(player, platforms, ctx) {
+export function isColliding(player, enemy) {
   if (
-    player.x < ctx.x + ctx.width &&
-    player.x + player.width > ctx.x &&
-    player.y < ctx.y + ctx.height &&
-    player.y + player.height > ctx.y
-  )
-    if (
-      enemy.x < platforms.platform.x + platforms.platform.width &&
-      enemy.x + enemy.width > platforms.platform.x &&
-      enemy.y < platforms.platform.y + platforms.platform.height &&
-      enemy.y + enemy.height > platforms.platform.y
-    ) {
-      return true;
-    } else {
-      return false;
-    }
+    player.x < enemy.x + enemy.width &&
+    player.x + player.width > enemy.x &&
+    player.y < enemy.y + enemy.height &&
+    player.y + player.height > enemy.y
+  ) {
+    return true;
+  } else {
+    return false;
+  }
 }

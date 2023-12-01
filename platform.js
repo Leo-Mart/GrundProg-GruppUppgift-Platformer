@@ -1,5 +1,5 @@
 export function drawPlatforms(ctx, game) {
-  // "marken"
+  //'marken';
   ctx.fillStyle = 'brown';
   ctx.fillRect(0, 470, 800, 30);
 
@@ -14,11 +14,11 @@ export function drawPlatforms(ctx, game) {
 //   let platform = game.platforms[7];
 //   console.log(platform);
 //   if (platform.y < 400 && platform.y > 100) {
-//     platform.velocity = 100 * game.deltaTime;
+//     platform.velocity = 1;
 //     platform.y -= platform.velocity;
 //     console.log('kör uppåt');
 //   } else if (game.platforms[7].y > 100) {
-//     platform.velocity = 10 * game.deltaTime;
+//     platform.velocity = 1;
 //     platform.y += platform.velocity;
 //     console.log('kör nedåt');
 //   } else {
