@@ -1,4 +1,4 @@
-let enemyImg = document.getElementById('enemySprite');
+let enemyImg = document.querySelector('#enemy');
 
 //import { enemyImg } from './main.js';
 

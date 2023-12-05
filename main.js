@@ -54,14 +54,50 @@ function initGame(gameWidth, gameHeight) {
 
     // eventuellt kunna ge platformar random x/y värden så de spawna in på ett random ställe.
     platforms: [
-      // {
-      //   //marken
-      //   x: 0,
-      //   y: 470,
-      //   width: 800,
-      //   height: 30,
-      //   velocity: 0,
-      // },
+      //marken
+      {
+        x: 0,
+        y: 470,
+        width: 500,
+        height: 30,
+        velocity: 0,
+      },
+      {
+        x: 550,
+        y: 470,
+        width: 500,
+        height: 30,
+        velocity: 0,
+      },
+      {
+        x: 1150,
+        y: 470,
+        width: 500,
+        height: 30,
+        velocity: 0,
+      },
+      {
+        x: 1650,
+        y: 420,
+        width: 500,
+        height: 80,
+        velocity: 0,
+      },
+      {
+        x: 2450,
+        y: 420,
+        width: 500,
+        height: 80,
+        velocity: 0,
+      },
+      // platforms
+      {
+        x: 0,
+        y: 470,
+        width: 500,
+        height: 30,
+        velocity: 0,
+      },
       {
         x: 800,
         y: 200,
@@ -72,13 +108,6 @@ function initGame(gameWidth, gameHeight) {
       {
         x: 800,
         y: 350,
-        width: -300,
-        height: 10,
-        velocity: 0,
-      },
-      {
-        x: 800,
-        y: 100,
         width: -300,
         height: 10,
         velocity: 0,
@@ -91,20 +120,6 @@ function initGame(gameWidth, gameHeight) {
         velocity: 0,
       },
       {
-        x: 0,
-        y: 400,
-        width: 300,
-        height: 10,
-        velocity: 0,
-      },
-      {
-        x: 0,
-        y: 250,
-        width: 300,
-        height: 10,
-        velocity: 0,
-      },
-      {
         x: 270,
         y: 200,
         width: 150,
@@ -127,16 +142,23 @@ function initGame(gameWidth, gameHeight) {
       },
       {
         x: 1200,
-        y: 100,
+        y: 200,
         width: 150,
-        height: 50,
+        height: 10,
         velocity: 0,
       },
       {
-        x: 1500,
-        y: 300,
-        width: 10,
-        height: 200,
+        x: 1800,
+        y: 100,
+        width: 150,
+        height: 10,
+        velocity: 0,
+      },
+      {
+        x: 2200,
+        y: 350,
+        width: 150,
+        height: 10,
         velocity: 0,
       },
     ],
@@ -156,7 +178,7 @@ window.addEventListener('keydown', (event) => {
       game.player.velocity.y === 0
     ) {
       game.player.keys.jump = true;
-      game.player.velocity.y = -800 * game.deltaTime;
+      game.player.velocity.y = -1200 * game.deltaTime;
     }
     // låter spelaren falla genom platformar
   } else if (event.key === 's') {
@@ -193,12 +215,12 @@ function tick(ctx, game) {
   updatePlayer(game);
 
   // kollision mellan spelare och botten av canvas
-  if (
-    game.player.y + game.player.height + game.player.velocity.y >=
-    canvas.height - 30
-  ) {
-    game.player.velocity.y = 0;
-  }
+  // if (
+  //   game.player.y + game.player.height + game.player.velocity.y >=
+  //   canvas.height - 30
+  // ) {
+  //   game.player.velocity.y = 0;
+  // }
   // hanterar kollision mellan spelare och platformar, första satsen hanterar vänstersidan, andra högersidan.
   game.platforms.forEach((platform) => {
     if (
@@ -230,7 +252,7 @@ function tick(ctx, game) {
     if (isColliding(game.player, enemy)) {
       console.log('här blev det krock!');
       game.enemies.splice(i, 1);
-      // game.player.velocity.y -= 1500 * game.deltaTime;
+      game.player.velocity.y = -1000 * game.deltaTime;
     }
   }
   // hanterar kollision mellan platformar och fiender
@@ -257,6 +279,11 @@ function tick(ctx, game) {
       }
     }
   });
+
+  if (game.player.y >= canvas.height) {
+    alert('oh no, you lost!');
+    // restart the game here
+  }
 
   // verkar inte funka riktigt men typ,
   // tanken är att denna bara ska köras när spelaren hoppar på/landar på en fiende
@@ -304,14 +331,13 @@ function tick(ctx, game) {
   // scrollar vänster/höger
   if (game.player.x + game.player.width > game.gameWidth - 150) {
     game.platforms.forEach((platform) => {
-      scrollOffset += 10;
       platform.x -= 200 * game.deltaTime;
+      game.player.velocity.x = 0;
     });
-  } else if (game.player.x < game.gameWidth - 800) {
+  } else if (game.player.x < game.gameWidth - window.innerWidth + 200) {
     game.platforms.forEach((platform) => {
-      scrollOffset -= 10;
-      platform.x += 400 * game.deltaTime;
-      game.player.velocity.y = 0;
+      platform.x += 200 * game.deltaTime;
+      game.player.velocity.x = 0;
     });
   }
 

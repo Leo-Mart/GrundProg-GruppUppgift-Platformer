@@ -1,7 +1,7 @@
 export function drawPlatforms(ctx, game) {
-  //'marken';
-  ctx.fillStyle = 'brown';
-  ctx.fillRect(0, 470, window.innerWidth, 30);
+  // //'marken';
+  // ctx.fillStyle = 'brown';
+  // ctx.fillRect(0, 470, window.innerWidth, 30);
 
   game.platforms.forEach((platform) => {
     ctx.fillStyle = 'green';
