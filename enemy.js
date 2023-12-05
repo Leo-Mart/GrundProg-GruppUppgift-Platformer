@@ -1,23 +1,13 @@
-//let enemyImg = document.getElementById('enemySprite');
+let enemyImg = document.getElementById('enemySprite');
 
 //import { enemyImg } from './main.js';
 
 export function drawEnemies(ctx, game) {
   for (let enemy of game.enemies) {
     ctx.fillStyle = 'red';
-
-    /* ctx.drawImage(
-      enemyImg,
-      0,
-      0,
-      enemy.width,
-      enemy.height,
-      enemy.x,
-      enemy.y,
-      enemy.width,
-      enemy.height
-    ); */
-    ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+    // ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(enemyImg, enemy.x, enemy.y, enemy.width, enemy.height);
   }
 }
 

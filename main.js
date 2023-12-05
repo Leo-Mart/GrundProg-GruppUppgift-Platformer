@@ -1,5 +1,5 @@
 import { drawPlayer, updatePlayer } from './player.js';
-import { drawPlatforms } from './platform.js';
+import { drawPlatforms, tickPlatformSpawn } from './platform.js';
 import {
   drawEnemies,
   updateEnemy,
@@ -12,7 +12,7 @@ import { timecount } from './points&time.js';
 let canvas = document.getElementById('canvas');
 let ctx = canvas.getContext('2d');
 
-canvas.width = 800;
+canvas.width = window.innerWidth;
 canvas.height = 500;
 
 let game = initGame(canvas.width, canvas.height);
@@ -48,6 +48,7 @@ function initGame(gameWidth, gameHeight) {
 
     enemies: [],
     enemySpawnTimer: 1,
+    platformSpawnTimer: 3,
     points: 0,
     gameTimer: 0.1,
 
@@ -117,41 +118,25 @@ function initGame(gameWidth, gameHeight) {
         height: 10,
         velocity: 0,
       },
-      // platformar över
       {
-        x: 800,
-        y: -100,
-        width: -800,
+        x: 1200,
+        y: 350,
+        width: 150,
         height: 10,
         velocity: 0,
       },
       {
-        x: 800,
-        y: -150,
-        width: -800,
-        height: 10,
+        x: 1200,
+        y: 100,
+        width: 150,
+        height: 50,
         velocity: 0,
       },
       {
-        x: 800,
-        y: -350,
-        width: -800,
-        height: 10,
-        velocity: 0,
-      },
-      {
-        x: 800,
-        y: -400,
-        width: -800,
-        height: 10,
-        velocity: 0,
-      },
-      // platformar under
-      {
-        x: 800,
-        y: 800,
-        width: -800,
-        height: 10,
+        x: 1500,
+        y: 300,
+        width: 10,
+        height: 200,
         velocity: 0,
       },
     ],
@@ -195,17 +180,6 @@ window.addEventListener('keyup', (event) => {
   }
 });
 
-function updateCameraBox() {
-  game.camerabox = {
-    position: {
-      x: game.player.x - 137.5,
-      y: game.player.y - 165,
-    },
-    width: 300,
-    height: 250,
-  };
-}
-
 function tick(ctx, game) {
   let now = Date.now();
   game.deltaTime = (now - game.lastTime) / 1000;
@@ -235,7 +209,6 @@ function tick(ctx, game) {
       game.player.x <= platform.x + platform.width
     ) {
       game.player.velocity.y = 0;
-      console.log('körs 1');
     }
     if (
       game.player.y + game.player.height <= platform.y &&
@@ -248,24 +221,16 @@ function tick(ctx, game) {
       game.player.x + game.player.width >= platform.x + platform.width
     ) {
       game.player.velocity.y = 0;
-      console.log('körs 2');
     }
   });
-
-  updateCameraBox();
-  ctx.fillStyle = 'rgba(0, 0, 255, 0.3)';
-  ctx.fillRect(
-    game.camerabox.position.x,
-    game.camerabox.position.y,
-    game.camerabox.width,
-    game.camerabox.height
-  );
 
   // kollar kollision mellan fiender och spelaren
   for (let i = 0; i < game.enemies.length; i++) {
     let enemy = game.enemies[i];
     if (isColliding(game.player, enemy)) {
       console.log('här blev det krock!');
+      game.enemies.splice(i, 1);
+      // game.player.velocity.y -= 1500 * game.deltaTime;
     }
   }
   // hanterar kollision mellan platformar och fiender
@@ -293,14 +258,59 @@ function tick(ctx, game) {
     }
   });
 
+  // verkar inte funka riktigt men typ,
+  // tanken är att denna bara ska köras när spelaren hoppar på/landar på en fiende
+  // måste antagligen kolla efter x värdet också, annars försvinner fienden så fort spelarens y + höjd.y träffar samma y värde :D
+  // vilket kanske är lite för lätt.
+  // for (let i = 0; i < game.enemies.length; i++) {
+  //   let enemy = game.enemies[i];
+  //   if (game.player.y + game.player.height < enemy.y) {
+  //     console.log('cronch');
+  //     game.enemies.splice(i--, 1);
+  //   }
+  // }
+
+  // function updateCameraBox() {
+  //   game.camerabox = {
+  //     position: {
+  //       x: game.player.x - 137.5,
+  //       y: game.player.y - 165,
+  //     },
+  //     width: 300,
+  //     height: 250,
+  //   };
+  // }
+  // updateCameraBox();
+  // ctx.fillStyle = 'rgba(0, 0, 255, 0.3)';
+  // ctx.fillRect(
+  //   game.camerabox.position.x,
+  //   game.camerabox.position.y,
+  //   game.camerabox.width,
+  //   game.camerabox.height
+  // );
+
   // "scrollar" uppåt efterhand som spelaren rör sig uppåt
-  if (game.player.keys.jump && game.player.y < game.gameHeight - 450) {
+  // if (game.player.keys.jump && game.player.y < game.gameHeight - 450) {
+  //   game.platforms.forEach((platform) => {
+  //     platform.y += 200 * game.deltaTime;
+  //   });
+  // } else if (game.player.y + game.player.height > game.gameHeight - 30) {
+  //   game.platforms.forEach((platform) => {
+  //     platform.y -= 400 * game.deltaTime;
+  //     game.player.velocity.y = 0;
+  //   });
+  // }
+
+  // scrollar vänster/höger
+  if (game.player.x + game.player.width > game.gameWidth - 150) {
     game.platforms.forEach((platform) => {
-      platform.y += 200 * game.deltaTime;
+      scrollOffset += 10;
+      platform.x -= 200 * game.deltaTime;
     });
-  } else if (game.player.y + game.player.height > game.gameHeight - 30) {
+  } else if (game.player.x < game.gameWidth - 800) {
     game.platforms.forEach((platform) => {
-      platform.y -= 400 * game.deltaTime;
+      scrollOffset -= 10;
+      platform.x += 400 * game.deltaTime;
       game.player.velocity.y = 0;
     });
   }
@@ -314,23 +324,35 @@ function tick(ctx, game) {
   // skapar ett enemy object och pushar detta till enemies array på en slumpad tid, denna array används sedan för att spawna in dem
   tickEnemySpawn(game);
 
+  // tickPlatformSpawn(game);
+
+  // ritar ut spelaren, flyttat ner den hit för att den skall ritas framför platformar
+  drawPlayer(ctx, game.player);
+
   timecount(ctx, game);
 
   requestAnimationFrame(() => tick(ctx, game));
 }
 
-// ctx.scale(1.5, 1.5);
 // ************ TODO ******************
 // X lägg in gravitation på spelare/fiender så de ramlar ner på platformar
 // X rita in platformar mer dynamisk, dock skall väl platformana vara fasta så vi kanske bara hårdkodar in dessa?
 // X lägga skapade platformar direkt i array och komma åt dem? Kanske typ göra platform = ctx.fillrect(x,y,w,h) och pusha den till en array som vi sedan kan kalla på för att fixa med kollision osv.
 // X kollision på platformar
-// eventuellt skapa en constructor/class för att dynamiskt skapa platformar
+// X eventuellt skapa en constructor/class för att dynamiskt skapa platformar, har gjort detta men är nog snyggare att hårdkoda in plattformar.
 // X kollision på fiender och platformar
 // X bygg vidare på hoppfunktionen så man inte kan spamma för mycket.
+// X kollision mellan fiender och spelare, gör inte mycket just nu dock
+// bygg en bana, med mål
+// spawna fiender ur en spawner av något slag
 // lägga in art, få det att funka med "broken state"
-// fiender byter håll när de träffar kanten
-// kollision mellan fiender och spelare
-// timer och poäng system
+// poäng system
 // powerups
-// scrolla banan uppåt, tänk på fiendespawn när banan scrollar uppåt
+// eventuellt death pits och liknande hinder
+// eventuellt lite design som en gamla arkadmaskin
+// eventuellt highscore och sånt, kanske spara i localstorage
+
+// testat lite saker på egen hand, dock ingen branch denna gång. line 29-52 i platform.js och callar den på 335 i main. Lagt till en funktion väldigt likt vår fiendespawn funktion som spawnar in platformar med ett min/max värde på x/y.
+// inte super-vacker atm men det funkar, undrar om det inte är bättre att limitera den väldigt mycket eller hårdkoda in platformar
+// line 275-281 i main, kommenterade ut i collision.js rad 6 också. pillade lite med att registrera när spelaren hoppar på fiendens huvud för att ta bort denna fiende ur array och eventuellt ge spelaren poäng
+// line 314-324 i main gjorde så att banan scrollar höger/vänster istället för upp/ner. Verkar mycket enklare så kanske ska köra med det istället
