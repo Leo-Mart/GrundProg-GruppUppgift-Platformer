@@ -1,20 +1,20 @@
-import { drawPlayer, updatePlayer } from "./player.js";
-import { drawPlatforms, tickPlatformSpawn } from "./platform.js";
+import { drawPlayer, updatePlayer } from './player.js';
+import { drawPlatforms, tickPlatformSpawn } from './platform.js';
 import {
   drawEnemies,
   updateEnemy,
   tickEnemySpawn,
   spawnEnemy,
-} from "./enemy.js";
+} from './enemy.js';
 import {
   isColliding,
   collisionPlayerplatform,
   collisionEnemiesPlatform,
-} from "./collision.js";
-import { timecount } from "./points&time.js";
+} from './collision.js';
+import { timecount } from './points&time.js';
 
-let canvas = document.getElementById("canvas");
-let ctx = canvas.getContext("2d");
+let canvas = document.getElementById('canvas');
+let ctx = canvas.getContext('2d');
 
 canvas.width = window.innerWidth;
 canvas.height = 500;
@@ -59,10 +59,17 @@ function initGame(gameWidth, gameHeight) {
     // eventuellt kunna ge platformar random x/y värden så de spawna in på ett random ställe.
     goal: [
       {
-        x: 3800,
-        y: 100,
+        x: 4150,
+        y: 280,
         width: 10,
         height: 150,
+        velocity: 0,
+      },
+      {
+        x: 4150,
+        y: 250,
+        width: 50,
+        height: 35,
         velocity: 0,
       },
     ],
@@ -205,8 +212,8 @@ function initGame(gameWidth, gameHeight) {
     deltaTime: 0,
   };
 }
-window.addEventListener("keydown", (event) => {
-  if (event.key === "w") {
+window.addEventListener('keydown', (event) => {
+  if (event.key === 'w') {
     // låter spelaren hoppa endast när den inte redan hoppar.
     if (
       game.player.y + game.player.height <= canvas.height &&
@@ -216,23 +223,23 @@ window.addEventListener("keydown", (event) => {
       game.player.velocity.y = -1200 * game.deltaTime;
     }
     // låter spelaren falla genom platformar
-  } else if (event.key === "s") {
+  } else if (event.key === 's') {
     game.player.velocity.y += 200 * game.deltaTime;
   }
 
-  if (event.key === "a") {
+  if (event.key === 'a') {
     game.player.keys.left = true;
-  } else if (event.key === "d") {
+  } else if (event.key === 'd') {
     game.player.keys.right = true;
   }
 });
 
-window.addEventListener("keyup", (event) => {
-  if (event.key === "a") {
+window.addEventListener('keyup', (event) => {
+  if (event.key === 'a') {
     game.player.keys.left = false;
   }
 
-  if (event.key === "d") {
+  if (event.key === 'd') {
     game.player.keys.right = false;
   }
 });
@@ -256,16 +263,23 @@ function tick(ctx, game) {
   for (let i = 0; i < game.enemies.length; i++) {
     let enemy = game.enemies[i];
     if (isColliding(game.player, enemy)) {
-      console.log("här blev det krock!");
+      console.log('här blev det krock!');
       game.enemies.splice(i, 1);
       game.player.velocity.y = -1000 * game.deltaTime;
     }
   }
   // om spelaren trillar genom hålen förlorar den
   if (game.player.y >= canvas.height) {
-    alert("oh no, you lost!");
+    alert('oh no, you lost!');
     game.player.x = 250 - 25;
     game.player.y = game.gameHeight - 100;
+  }
+  for (let i = 0; i < game.goal.length; i++) {
+    let goal = game.goal[i];
+    if (isColliding(game.player, game.goal)) {
+      alert('you win!');
+      console.log('körs');
+    }
   }
 
   // function updateCameraBox() {
@@ -315,6 +329,10 @@ function tick(ctx, game) {
   // scrollar hela tiden
   game.platforms.forEach((platform) => {
     platform.x -= 150 * game.deltaTime;
+  });
+
+  game.goal.forEach((goal) => {
+    goal.x -= 150 * game.deltaTime;
   });
 
   // denna funktion hämtar info från platforms arrayn och loopar igenom och ritar ut varje platform. Ritar också ut "marken"
