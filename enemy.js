@@ -24,9 +24,9 @@ export function updateEnemy(game) {
       game.enemies.splice(i--, 1);
     }
 
-    if (enemy.y + enemy.height + enemy.velocity.y >= canvas.height - 30) {
-      enemy.velocity.y = 0;
-    }
+    // if (enemy.y + enemy.height + enemy.velocity.y >= canvas.height - 30) {
+    //   enemy.velocity.y = 0;
+    // }
     enemy.y += enemy.velocity.y;
     enemy.velocity.y += 100 * game.deltaTime;
   }

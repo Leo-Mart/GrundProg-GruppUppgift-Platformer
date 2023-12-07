@@ -1,16 +1,20 @@
-import { drawPlayer, updatePlayer } from './player.js';
-import { drawPlatforms, tickPlatformSpawn } from './platform.js';
+import { drawPlayer, updatePlayer } from "./player.js";
+import { drawPlatforms, tickPlatformSpawn } from "./platform.js";
 import {
   drawEnemies,
   updateEnemy,
   tickEnemySpawn,
   spawnEnemy,
-} from './enemy.js';
-import { isColliding } from './collision.js';
-import { timecount } from './points&time.js';
+} from "./enemy.js";
+import {
+  isColliding,
+  collisionPlayerplatform,
+  collisionEnemiesPlatform,
+} from "./collision.js";
+import { timecount } from "./points&time.js";
 
-let canvas = document.getElementById('canvas');
-let ctx = canvas.getContext('2d');
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
 
 canvas.width = window.innerWidth;
 canvas.height = 500;
@@ -53,6 +57,16 @@ function initGame(gameWidth, gameHeight) {
     gameTimer: 0.1,
 
     // eventuellt kunna ge platformar random x/y värden så de spawna in på ett random ställe.
+    goal: [
+      {
+        x: 3800,
+        y: 100,
+        width: 10,
+        height: 150,
+        velocity: 0,
+      },
+    ],
+
     platforms: [
       //marken
       {
@@ -90,14 +104,14 @@ function initGame(gameWidth, gameHeight) {
         height: 80,
         velocity: 0,
       },
-      // platforms
       {
-        x: 0,
-        y: 470,
+        x: 3700,
+        y: 420,
         width: 500,
-        height: 30,
+        height: 80,
         velocity: 0,
       },
+      // platformar
       {
         x: 800,
         y: 200,
@@ -161,6 +175,27 @@ function initGame(gameWidth, gameHeight) {
         height: 10,
         velocity: 0,
       },
+      {
+        x: 3000,
+        y: 350,
+        width: 150,
+        height: 10,
+        velocity: 0,
+      },
+      {
+        x: 3300,
+        y: 350,
+        width: 150,
+        height: 10,
+        velocity: 0,
+      },
+      {
+        x: 3500,
+        y: 350,
+        width: 150,
+        height: 10,
+        velocity: 0,
+      },
     ],
 
     gameWidth,
@@ -170,8 +205,8 @@ function initGame(gameWidth, gameHeight) {
     deltaTime: 0,
   };
 }
-window.addEventListener('keydown', (event) => {
-  if (event.key === 'w') {
+window.addEventListener("keydown", (event) => {
+  if (event.key === "w") {
     // låter spelaren hoppa endast när den inte redan hoppar.
     if (
       game.player.y + game.player.height <= canvas.height &&
@@ -181,23 +216,23 @@ window.addEventListener('keydown', (event) => {
       game.player.velocity.y = -1200 * game.deltaTime;
     }
     // låter spelaren falla genom platformar
-  } else if (event.key === 's') {
+  } else if (event.key === "s") {
     game.player.velocity.y += 200 * game.deltaTime;
   }
 
-  if (event.key === 'a') {
+  if (event.key === "a") {
     game.player.keys.left = true;
-  } else if (event.key === 'd') {
+  } else if (event.key === "d") {
     game.player.keys.right = true;
   }
 });
 
-window.addEventListener('keyup', (event) => {
-  if (event.key === 'a') {
+window.addEventListener("keyup", (event) => {
+  if (event.key === "a") {
     game.player.keys.left = false;
   }
 
-  if (event.key === 'd') {
+  if (event.key === "d") {
     game.player.keys.right = false;
   }
 });
@@ -213,89 +248,25 @@ function tick(ctx, game) {
   drawPlayer(ctx, game.player);
   // hanterar spelarens rörelser och "gravitation"
   updatePlayer(game);
-
-  // kollision mellan spelare och botten av canvas
-  // if (
-  //   game.player.y + game.player.height + game.player.velocity.y >=
-  //   canvas.height - 30
-  // ) {
-  //   game.player.velocity.y = 0;
-  // }
-  // hanterar kollision mellan spelare och platformar, första satsen hanterar vänstersidan, andra högersidan.
-  game.platforms.forEach((platform) => {
-    if (
-      game.player.y + game.player.height <= platform.y &&
-      game.player.y + game.player.height + game.player.velocity.y >=
-        platform.y &&
-      game.player.x + game.player.width >= platform.x &&
-      game.player.x <= platform.x + platform.width
-    ) {
-      game.player.velocity.y = 0;
-    }
-    if (
-      game.player.y + game.player.height <= platform.y &&
-      game.player.y + game.player.height + game.player.velocity.y >=
-        platform.y &&
-      // kollar spelarens sidor emot platformarna för att hitta när denne har trillat av en platform
-      // flippad kontra ovan då dessa platformar är på högersida, de ovan är på vänster.
-      // Verkar också som om dessa if-satser tar mitten platformarna också.
-      game.player.x <= platform.x &&
-      game.player.x + game.player.width >= platform.x + platform.width
-    ) {
-      game.player.velocity.y = 0;
-    }
-  });
+  // kollision mellan spelare och platformar och fiender och platformar
+  collisionPlayerplatform(game.player, game.platforms);
+  collisionEnemiesPlatform(game.enemies, game.platforms);
 
   // kollar kollision mellan fiender och spelaren
   for (let i = 0; i < game.enemies.length; i++) {
     let enemy = game.enemies[i];
     if (isColliding(game.player, enemy)) {
-      console.log('här blev det krock!');
+      console.log("här blev det krock!");
       game.enemies.splice(i, 1);
       game.player.velocity.y = -1000 * game.deltaTime;
     }
   }
-  // hanterar kollision mellan platformar och fiender
-  game.platforms.forEach((platform) => {
-    for (let enemy of game.enemies) {
-      if (
-        enemy.y + enemy.height <= platform.y &&
-        enemy.y + enemy.height + enemy.velocity.y >= platform.y &&
-        enemy.x + enemy.width >= platform.x &&
-        enemy.x <= platform.x + platform.width
-      ) {
-        enemy.velocity.y = 0;
-      }
-      if (
-        enemy.y + enemy.height <= platform.y &&
-        enemy.y + enemy.height + enemy.velocity.y >= platform.y &&
-        // kollar spelarens sidor emot platformarna för att hitta när denne har trillat av en platform
-        // flippad kontra ovan då dessa platformar är på högersida, de ovan är på vänster.
-        // Verkar också som om dessa if-satser tar mitten platformarna också.
-        enemy.x <= platform.x &&
-        enemy.x + enemy.width >= platform.x + platform.width
-      ) {
-        enemy.velocity.y = 0;
-      }
-    }
-  });
-
+  // om spelaren trillar genom hålen förlorar den
   if (game.player.y >= canvas.height) {
-    alert('oh no, you lost!');
-    // restart the game here
+    alert("oh no, you lost!");
+    game.player.x = 250 - 25;
+    game.player.y = game.gameHeight - 100;
   }
-
-  // verkar inte funka riktigt men typ,
-  // tanken är att denna bara ska köras när spelaren hoppar på/landar på en fiende
-  // måste antagligen kolla efter x värdet också, annars försvinner fienden så fort spelarens y + höjd.y träffar samma y värde :D
-  // vilket kanske är lite för lätt.
-  // for (let i = 0; i < game.enemies.length; i++) {
-  //   let enemy = game.enemies[i];
-  //   if (game.player.y + game.player.height < enemy.y) {
-  //     console.log('cronch');
-  //     game.enemies.splice(i--, 1);
-  //   }
-  // }
 
   // function updateCameraBox() {
   //   game.camerabox = {
@@ -329,17 +300,22 @@ function tick(ctx, game) {
   // }
 
   // scrollar vänster/höger
-  if (game.player.x + game.player.width > game.gameWidth - 150) {
-    game.platforms.forEach((platform) => {
-      platform.x -= 200 * game.deltaTime;
-      game.player.velocity.x = 0;
-    });
-  } else if (game.player.x < game.gameWidth - window.innerWidth + 200) {
-    game.platforms.forEach((platform) => {
-      platform.x += 200 * game.deltaTime;
-      game.player.velocity.x = 0;
-    });
-  }
+  // if (game.player.x + game.player.width > game.gameWidth - 150) {
+  //   game.platforms.forEach((platform) => {
+  //     platform.x -= 200 * game.deltaTime;
+  //     game.player.velocity.x = 0;
+  //   });
+  // } else if (game.player.x < game.gameWidth - window.innerWidth + 200) {
+  //   game.platforms.forEach((platform) => {
+  //     platform.x += 200 * game.deltaTime;
+  //     game.player.velocity.x = 0;
+  //   });
+  // }
+
+  // scrollar hela tiden
+  game.platforms.forEach((platform) => {
+    platform.x -= 150 * game.deltaTime;
+  });
 
   // denna funktion hämtar info från platforms arrayn och loopar igenom och ritar ut varje platform. Ritar också ut "marken"
   drawPlatforms(ctx, game);
@@ -356,10 +332,8 @@ function tick(ctx, game) {
   drawPlayer(ctx, game.player);
 
   timecount(ctx, game);
-
   requestAnimationFrame(() => tick(ctx, game));
 }
-
 // ************ TODO ******************
 // X lägg in gravitation på spelare/fiender så de ramlar ner på platformar
 // X rita in platformar mer dynamisk, dock skall väl platformana vara fasta så vi kanske bara hårdkodar in dessa?
@@ -369,7 +343,7 @@ function tick(ctx, game) {
 // X kollision på fiender och platformar
 // X bygg vidare på hoppfunktionen så man inte kan spamma för mycket.
 // X kollision mellan fiender och spelare, gör inte mycket just nu dock
-// bygg en bana, med mål
+// bygg en bana, med mål, finns en bana men målet vill inte ritas ut.
 // spawna fiender ur en spawner av något slag
 // lägga in art, få det att funka med "broken state"
 // poäng system
@@ -377,6 +351,8 @@ function tick(ctx, game) {
 // eventuellt death pits och liknande hinder
 // eventuellt lite design som en gamla arkadmaskin
 // eventuellt highscore och sånt, kanske spara i localstorage
+
+// powerups och ett mål så är vi ok för g
 
 // testat lite saker på egen hand, dock ingen branch denna gång. line 29-52 i platform.js och callar den på 335 i main. Lagt till en funktion väldigt likt vår fiendespawn funktion som spawnar in platformar med ett min/max värde på x/y.
 // inte super-vacker atm men det funkar, undrar om det inte är bättre att limitera den väldigt mycket eller hårdkoda in platformar
