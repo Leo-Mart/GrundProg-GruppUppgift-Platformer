@@ -15,6 +15,7 @@ const lookleft = 35;
 
 const walkcycle = [3, 4, 5];
 let currentWalkFrame = 50;
+let framecount = 0;
 
 const standing = 0;
 const jumping = 25;
@@ -36,7 +37,7 @@ export function drawFrame (frameX, frameY, canvasX, canvasY) {
 
 
 // Funktioner som ritar ut spelaren
-export function drawPlayer(ctx, player) {
+/* export function drawPlayer(ctx, player) {
   //console.log(player);
   //ctx.fillStyle = 'blue';
   // ctx.fillRect(player.x, player.y, player.width, player.height);
@@ -62,7 +63,7 @@ export function drawPlayer(ctx, player) {
     }
     
   }
-}
+} */
 
 
 // Funktion som hanterar rörelselogik hos spelaren
@@ -78,6 +79,45 @@ export function updatePlayer(game) {
   player.y += player.velocity.y;
   player.velocity.y += 30 * game.deltaTime;
   //player.velocity.y += 0.2;
+}
+
+// Funktioner som ritar ut spelaren
+export function drawPlayer(ctx, player) {
+  //onsole.log(player);
+  //ctx.fillStyle = 'blue';
+  // ctx.fillRect(player.x, player.y, player.width, player.height);
+  ctx.imageSmoothingEnabled = false;
+  if (player.state.airtime === true) { // om player i luften
+    /* console.log(player.width);
+    console.log(standing);
+    console.log(jumping);
+    console.log(hurt); */
+    if (player.state.left === true) { // om player i luften ÅT vänster
+      ctx.drawImage(playerImg, jumping, lookleft, player.width, player.height, player.x, player.y, player.width, player.height)
+    } else if (player.state.right === true) { // om player i luften ÅT höger
+      ctx.drawImage(playerImg, jumping, lookright, player.width, player.height, player.x, player.y, player.width, player.height)
+    }
+  } else if (player.keys.left === true) {
+    console.log(currentWalkFrame);
+    ctx.drawImage(playerImg, currentWalkFrame, lookleft, player.width, player.height, player.x, player.y, player.width, player.height);
+        currentWalkFrame += 25;
+        if (currentWalkFrame > 100) {
+          currentWalkFrame = 50;
+        }
+  } else if (player.keys.right === true) {
+    ctx.drawImage(playerImg, currentWalkFrame, lookright, player.width, player.height, player.x, player.y, player.width, player.height);
+    currentWalkFrame += 25;
+        if (currentWalkFrame > 100) {
+          currentWalkFrame = 50;
+        }
+  } else {
+    if (player.state.left === true) {
+      ctx.drawImage(playerImg, 0, 35, player.width, player.height, player.x, player.y, player.width, player.height);
+    } else if (player.state.right == true){
+      ctx.drawImage(playerImg, 0, 0, player.width, player.height, player.x, player.y, player.width, player.height);
+    }
+    
+  }
 }
 
 /* // Funktioner som ritar ut spelaren

@@ -269,7 +269,7 @@ function tick(ctx, game) {
       console.log('här blev det krock!');
       game.enemies.splice(i, 1);
       game.player.velocity.y = -1000 * game.deltaTime;
-      game.player.airtime = true;
+      game.player.state.airtime = true;
     }
   }
   // hanterar kollision mellan platformar och fiender
