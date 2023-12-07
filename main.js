@@ -1,4 +1,4 @@
-import { drawPlayer, updatePlayer } from './player.js';
+import { drawFrame, drawPlayer, updatePlayer } from './player.js';
 import { drawPlatforms, tickPlatformSpawn } from './platform.js';
 import {
   drawEnemies,
@@ -35,6 +35,11 @@ function initGame(gameWidth, gameHeight) {
         right: false,
         jump: false,
       },
+      state: {
+        airtime: false,
+        left: false,
+        right: true,
+      }
     },
 
     camerabox: {
@@ -179,16 +184,23 @@ window.addEventListener('keydown', (event) => {
     ) {
       game.player.keys.jump = true;
       game.player.velocity.y = -1200 * game.deltaTime;
+      game.player.state.airtime = true;
     }
     // låter spelaren falla genom platformar
   } else if (event.key === 's') {
     game.player.velocity.y += 200 * game.deltaTime;
+    game.player.state.airtime = true;
   }
 
   if (event.key === 'a') {
     game.player.keys.left = true;
+    game.player.state.left = true;
+    game.player.state.right = false;
+
   } else if (event.key === 'd') {
     game.player.keys.right = true;
+    game.player.state.left = false;
+    game.player.state.right = true;
   }
 });
 
@@ -199,6 +211,8 @@ window.addEventListener('keyup', (event) => {
 
   if (event.key === 'd') {
     game.player.keys.right = false;
+  }
+  if (event.key === 'w') {
   }
 });
 
@@ -230,6 +244,7 @@ function tick(ctx, game) {
       game.player.x + game.player.width >= platform.x &&
       game.player.x <= platform.x + platform.width
     ) {
+      game.player.state.airtime = false
       game.player.velocity.y = 0;
     }
     if (
@@ -242,6 +257,7 @@ function tick(ctx, game) {
       game.player.x <= platform.x &&
       game.player.x + game.player.width >= platform.x + platform.width
     ) {
+      game.player.state.airtime = false
       game.player.velocity.y = 0;
     }
   });
@@ -253,6 +269,7 @@ function tick(ctx, game) {
       console.log('här blev det krock!');
       game.enemies.splice(i, 1);
       game.player.velocity.y = -1000 * game.deltaTime;
+      game.player.airtime = true;
     }
   }
   // hanterar kollision mellan platformar och fiender
@@ -281,7 +298,7 @@ function tick(ctx, game) {
   });
 
   if (game.player.y >= canvas.height) {
-    alert('oh no, you lost!');
+    /* alert('oh no, you lost!'); */
     // restart the game here
   }
 
