@@ -1,4 +1,4 @@
-import { drawFrame, drawPlayer, updatePlayer } from './player.js';
+import { drawPlayer, updatePlayer } from './player.js';
 import { drawPlatforms, tickPlatformSpawn } from './platform.js';
 import {
   drawEnemies,
@@ -282,6 +282,7 @@ function tick(ctx, game) {
         enemy.x <= platform.x + platform.width
       ) {
         enemy.velocity.y = 0;
+        enemy.state.airtime = true;
       }
       if (
         enemy.y + enemy.height <= platform.y &&
@@ -293,6 +294,7 @@ function tick(ctx, game) {
         enemy.x + enemy.width >= platform.x + platform.width
       ) {
         enemy.velocity.y = 0;
+        enemy.state.airtime = true;
       }
     }
   });

@@ -1,4 +1,4 @@
-let playerImg = document.querySelector('#player');
+let playerImg = document.querySelector("#player");
 
 /* const lookright = player.height * 1;
 const lookleft = player.height * 2;
@@ -10,22 +10,16 @@ const standing = player.width * 1;
 const jumping = player.width * 2;
 const hurt = player.width * 6; */
 
-const lookright = 0
-const lookleft = 35;
+const lookright = 0;
+const lookleft = 36;
 
-const walkcycle = [3, 4, 5];
+const walkcycle = [3, 4, 5, 6];
 let currentWalkFrame = 50;
 let framecount = 0;
 
 const standing = 0;
 const jumping = 25;
 const hurt = 125;
-
-export function drawFrame (frameX, frameY, canvasX, canvasY) {
-  ctx.drawImage(img,
-    frameX * width, frameY * height, width, height,
-    canvasX, canvasY, scaledWidth, scaledHeight);
-}
 
 // (img, sx, sy ,swidth, sheight, dx, dy, dwidth, dheight)
 
@@ -34,7 +28,6 @@ export function drawFrame (frameX, frameY, canvasX, canvasY) {
 /* ctx.drawImage(playerImg, 
   jumping, lookright, player.width, player.height, 
   player.x, player.y, player.width, player.height) */
-
 
 // Funktioner som ritar ut spelaren
 /* export function drawPlayer(ctx, player) {
@@ -65,7 +58,6 @@ export function drawFrame (frameX, frameY, canvasX, canvasY) {
   }
 } */
 
-
 // Funktion som hanterar rörelselogik hos spelaren
 export function updatePlayer(game) {
   const player = game.player;
@@ -83,40 +75,102 @@ export function updatePlayer(game) {
 
 // Funktioner som ritar ut spelaren
 export function drawPlayer(ctx, player) {
-  //onsole.log(player);
-  //ctx.fillStyle = 'blue';
-  // ctx.fillRect(player.x, player.y, player.width, player.height);
   ctx.imageSmoothingEnabled = false;
-  if (player.state.airtime === true) { // om player i luften
-    /* console.log(player.width);
-    console.log(standing);
-    console.log(jumping);
-    console.log(hurt); */
-    if (player.state.left === true) { // om player i luften ÅT vänster
-      ctx.drawImage(playerImg, jumping, lookleft, player.width, player.height, player.x, player.y, player.width, player.height)
-    } else if (player.state.right === true) { // om player i luften ÅT höger
-      ctx.drawImage(playerImg, jumping, lookright, player.width, player.height, player.x, player.y, player.width, player.height)
+  if (player.state.airtime === true) {
+    // om player i luften
+    if (player.state.left === true) {
+      // om player i luften ÅT vänster
+      ctx.drawImage(
+        playerImg,
+        jumping,
+        lookleft,
+        player.width,
+        player.height,
+        player.x,
+        player.y,
+        player.width,
+        player.height
+      );
+    } else if (player.state.right === true) {
+      // om player i luften ÅT höger
+      ctx.drawImage(
+        playerImg,
+        jumping,
+        lookright,
+        player.width,
+        player.height,
+        player.x,
+        player.y,
+        player.width,
+        player.height
+      );
     }
   } else if (player.keys.left === true) {
-    console.log(currentWalkFrame);
-    ctx.drawImage(playerImg, currentWalkFrame, lookleft, player.width, player.height, player.x, player.y, player.width, player.height);
-        currentWalkFrame += 25;
-        if (currentWalkFrame > 100) {
-          currentWalkFrame = 50;
-        }
+    ctx.drawImage(
+      playerImg,
+      currentWalkFrame,
+      lookleft,
+      player.width,
+      player.height,
+      player.x,
+      player.y,
+      player.width,
+      player.height
+    );
+    framecount++;
+    if (framecount >= 10) {
+      framecount = 0;
+      currentWalkFrame += 25;
+      if (currentWalkFrame > 125) {
+        currentWalkFrame = 50;
+      }
+    }
   } else if (player.keys.right === true) {
-    ctx.drawImage(playerImg, currentWalkFrame, lookright, player.width, player.height, player.x, player.y, player.width, player.height);
-    currentWalkFrame += 25;
-        if (currentWalkFrame > 100) {
-          currentWalkFrame = 50;
-        }
+    ctx.drawImage(
+      playerImg,
+      currentWalkFrame,
+      lookright,
+      player.width,
+      player.height,
+      player.x,
+      player.y,
+      player.width,
+      player.height
+    );
+    framecount++;
+    if (framecount >= 10) {
+      framecount = 0;
+      currentWalkFrame += 25;
+      if (currentWalkFrame > 125) {
+        currentWalkFrame = 50;
+      }
+    }
   } else {
     if (player.state.left === true) {
-      ctx.drawImage(playerImg, 0, 35, player.width, player.height, player.x, player.y, player.width, player.height);
-    } else if (player.state.right == true){
-      ctx.drawImage(playerImg, 0, 0, player.width, player.height, player.x, player.y, player.width, player.height);
+      ctx.drawImage(
+        playerImg,
+        0,
+        35,
+        player.width,
+        player.height,
+        player.x,
+        player.y,
+        player.width,
+        player.height
+      );
+    } else if (player.state.right == true) {
+      ctx.drawImage(
+        playerImg,
+        0,
+        0,
+        player.width,
+        player.height,
+        player.x,
+        player.y,
+        player.width,
+        player.height
+      );
     }
-    
   }
 }
 

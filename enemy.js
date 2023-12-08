@@ -1,13 +1,138 @@
-let enemyImg = document.querySelector('#enemy');
+let enemyImg = document.querySelector("#enemy");
 
 //import { enemyImg } from './main.js';
 
+const lookright = 30;
+const lookleft = 0;
+
+const walkcycle = [2, 3, 4];
+let currentWalkFrame = 30;
+let framecount = 0;
+
+const standing = 0;
+const jumping = 120;
+const hurt = 150;
+
+export function spawnEnemy(game) {
+  let side = Math.random() < 0.5;
+  let y = 20;
+
+  let enemy = {
+    x: side ? 20 : 760,
+    y,
+    velocity: {
+      x: 0,
+      y: 1,
+    },
+    width: 30,
+    height: 30,
+    velX: side ? 100 : -100,
+    state: {
+      lookleft: side ? false : true,
+      lookright: side ? true : false,
+      airtime: false,
+      hurt: false,
+      currentWalkFrame: 30,
+      framecount: 0
+    },
+  };
+
+  game.enemies.push(enemy);
+
+  console.log(enemy)
+}
+// (img, sx, sy ,swidth, sheight, dx, dy, dwidth, dheight)
+
 export function drawEnemies(ctx, game) {
   for (let enemy of game.enemies) {
-    ctx.fillStyle = 'red';
-    // ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+    //ctx.fillStyle = 'red';
+    // ctx.fillRect(enemy.x, ednemy.y, enemy.width, enemy.height);
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(enemyImg, enemy.x, enemy.y, enemy.width, enemy.height);
+    if (enemy.state.hurt === true) {
+      drawImage(
+        enemyImg,
+        hurt,
+        lookleft,
+        enemy.width,
+        enemy.height,
+        enemy.x,
+        enemy.y,
+        enemy.width,
+        enemy.height
+      );
+    }
+    /* if (enemy.state.airtime === true) {
+      if (enemy.state.lookleft === true) {
+        drawImage(
+          enemyImg,
+          jumping,
+          lookleft,
+  
+          enemy.width,
+          enemy.height,
+          enemy.x,
+          enemy.y,
+          enemy.width,
+          enemy.height
+        );
+      } else if (enemy.state.lookright === true) {
+      drawImage(
+          enemyImg,
+          jumping,
+          lookright,
+
+          enemy.width,
+          enemy.height,
+          enemy.x,
+          enemy.y,
+          enemy.width,
+          enemy.height
+        );
+      }
+    } */
+    if (enemy.state.lookleft === true) {
+      ctx.drawImage(
+        enemyImg,
+        currentWalkFrame,
+        lookleft,
+
+        enemy.width,
+        enemy.height,
+        enemy.x,
+        enemy.y,
+        enemy.width,
+        enemy.height
+      );
+      framecount++;
+      if (framecount >= 15) {
+        framecount = 0;
+        currentWalkFrame += 30;
+        if (currentWalkFrame > 120) {
+          currentWalkFrame = 30;
+        }
+      }
+    } else if (enemy.state.lookright === true ) {
+      ctx.drawImage(
+        enemyImg,
+        currentWalkFrame,
+        lookright,
+
+        enemy.width,
+        enemy.height,
+        enemy.x,
+        enemy.y,
+        enemy.width,
+        enemy.height
+      );
+      framecount++;
+      if (framecount >= 15) {
+        framecount = 0;
+        currentWalkFrame += 30;
+        if (currentWalkFrame > 120) {
+          currentWalkFrame = 30;
+        }
+      }
+    }
   }
 }
 
@@ -40,21 +165,4 @@ export function tickEnemySpawn(game) {
   }
 }
 
-export function spawnEnemy(game) {
-  let side = Math.random() < 0.5;
-  let y = 20;
 
-  let enemy = {
-    x: side ? 20 : 760,
-    y,
-    velocity: {
-      x: 0,
-      y: 1,
-    },
-    width: 30,
-    height: 30,
-    velX: side ? 100 : -100,
-  };
-
-  game.enemies.push(enemy);
-}
