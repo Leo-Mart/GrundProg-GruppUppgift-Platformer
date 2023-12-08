@@ -11,8 +11,14 @@ import {
   collisionPlayerplatform,
   collisionEnemiesPlatform,
 } from './collision.js';
-import { timecount } from './points&time.js';
-import { drawPowerUp } from './powerups.js';
+import { timecount, pointcounter } from './points&time.js';
+import {
+  drawPowerUps,
+  updatePowerUps,
+  spawnPowerups,
+  tickPowerupSpawn,
+} from './powerups.js';
+import { drawLasers, updateLasers, shootLaser } from './laser.js';
 
 let canvas = document.getElementById('canvas');
 let ctx = canvas.getContext('2d');
@@ -27,7 +33,7 @@ function initGame(gameWidth, gameHeight) {
 
   return {
     player: {
-      x: gameWidth / 2 - 150,
+      x: 150,
       y: gameHeight - 100,
       width: 25,
       height: 35,
@@ -44,13 +50,15 @@ function initGame(gameWidth, gameHeight) {
         airtime: false,
         left: false,
         right: true,
-      }
+      },
+      powererdup: false,
     },
 
     powerups: [],
     enemies: [],
     enemySpawnTimer: 1,
     platformSpawnTimer: 3,
+    powerupSpawnTimer: 10,
     points: 0,
     gameTimer: 0.1,
     lasers: [],
@@ -240,7 +248,6 @@ window.addEventListener('keydown', (event) => {
     game.player.keys.left = true;
     game.player.state.left = true;
     game.player.state.right = false;
-
   } else if (event.key === 'd') {
     game.player.keys.right = true;
     game.player.state.left = false;
@@ -256,7 +263,8 @@ window.addEventListener('keyup', (event) => {
   if (event.key === 'd') {
     game.player.keys.right = false;
   }
-  if (event.key === 'w') {
+  if (event.key === ' ') {
+    shootLaser(game, game.player, true);
   }
 });
 
@@ -275,54 +283,71 @@ function tick(ctx, game) {
   // kollision mellan spelare och platformar och fiender och platformar
   collisionPlayerplatform(game.player, game.platforms);
   collisionEnemiesPlatform(game.enemies, game.platforms);
-  
+  collisionEnemiesPlatform(game.powerups, game.platforms);
+
   // kollar kollision mellan fiender och spelaren
   for (let i = 0; i < game.enemies.length; i++) {
     let enemy = game.enemies[i];
     if (isColliding(game.player, enemy)) {
-      console.log('här blev det krock!');
       game.enemies.splice(i, 1);
       game.player.velocity.y = -1000 * game.deltaTime;
       game.player.state.airtime = true;
     }
   }
 
-  // om spelaren trillar genom hålen förlorar den
-  if (game.player.y >= canvas.height) {
-    alert('oh no, you lost!');
-    game.player.x = 250 - 25;
-    game.player.y = game.gameHeight - 100;
-  }
+  // kollision mellan mål och spelare
   for (let i = 0; i < game.goal.length; i++) {
     let goal = game.goal[i];
     if (isColliding(game.player, goal)) {
       alert('you win!');
-      console.log('körs');
+      // starta om spelet här
     }
+  }
 
+  // om spelaren trillar genom hålen förlorar den
+  if (game.player.y >= canvas.height) {
+    alert('oh no, you lost!');
+    // starta om spelet här
   }
 
   // scrollar vänster/höger
-  if (game.player.x + game.player.width > game.gameWidth - 400) {
+  // if (game.player.x + game.player.width > game.gameWidth - 600) {
+  //   game.platforms.forEach((platform) => {
+  //     if (game.player.keys.right) {
+  //       platform.x -= 300 * game.deltaTime;
+  //       game.player.velocity.x = 0;
+  //     }
+  //   });
+  // } else if (game.player.x < game.gameWidth - window.innerWidth + 200) {
+  //   game.platforms.forEach((platform) => {
+  //     if (game.player.keys.left) {
+  //       platform.x += 300 * game.deltaTime;
+  //       game.player.velocity.x = 0;
+  //     }
+  //   });
+  // }
+
+  if (game.player.keys.right) {
+    // scrollar hela tiden
     game.platforms.forEach((platform) => {
-      platform.x -= 200 * game.deltaTime;
-      game.player.velocity.x = 0;
+      platform.x -= 150 * game.deltaTime;
     });
-  } else if (game.player.x < game.gameWidth - window.innerWidth + 200) {
+
+    game.goal.forEach((goal) => {
+      goal.x -= 150 * game.deltaTime;
+    });
+  } else if (game.player.keys.left) {
     game.platforms.forEach((platform) => {
-      platform.x += 200 * game.deltaTime;
-      game.player.velocity.x = 0;
+      platform.x += 150 * game.deltaTime;
+    });
+
+    game.goal.forEach((goal) => {
+      goal.x += 150 * game.deltaTime;
     });
   }
 
-  // // scrollar hela tiden
-  // game.platforms.forEach((platform) => {
-  //   platform.x -= 150 * game.deltaTime;
-  // });
-
-  // game.goal.forEach((goal) => {
-  //   goal.x -= 150 * game.deltaTime;
-  // });
+  drawLasers(ctx, game);
+  updateLasers(game);
 
   // denna funktion hämtar info från platforms arrayn och loopar igenom och ritar ut varje platform. Ritar också ut "marken"
   drawPlatforms(ctx, game);
@@ -332,16 +357,16 @@ function tick(ctx, game) {
   updateEnemy(game);
   // skapar ett enemy object och pushar detta till enemies array på en slumpad tid, denna array används sedan för att spawna in dem
   tickEnemySpawn(game);
-
-  // tickPlatformSpawn(game);
-
   // ritar ut spelaren, flyttat ner den hit för att den skall ritas framför platformar
   drawPlayer(ctx, game.player);
 
   // ritar ut powerups
-  drawPowerUp(ctx);
+  tickPowerupSpawn(game);
+  drawPowerUps(ctx, game);
+  updatePowerUps(game);
 
   timecount(ctx, game);
+  pointcounter(ctx);
   requestAnimationFrame(() => tick(ctx, game));
 }
 // ************ TODO ******************
@@ -353,18 +378,15 @@ function tick(ctx, game) {
 // X kollision på fiender och platformar
 // X bygg vidare på hoppfunktionen så man inte kan spamma för mycket.
 // X kollision mellan fiender och spelare, gör inte mycket just nu dock
-// bygg en bana, med mål, finns en bana men målet vill inte ritas ut.
-// spawna fiender ur en spawner av något slag
-// lägga in art, få det att funka med "broken state"
-// poäng system
-// powerups
-// eventuellt death pits och liknande hinder
-// eventuellt lite design som en gamla arkadmaskin
+// x bygg en bana, med mål, finns en bana men målet vill inte ritas ut.
+// x lägga in art, få det att funka med "broken state"
+// x eventuellt death pits och liknande hinder
+// fixa rörelser/collision.
+// collision för att förlora/dö
+// powerups, spawnar in och har kollision med platformar, fixa kollision med spelaren och att den ger sin powerup
+// spelet starta om när man träffar mål eller dör
+// eventuellt lite design
 // eventuellt highscore och sånt, kanske spara i localstorage
+// rensa ut koden
 
 // powerups och ett mål så är vi ok för g
-
-// testat lite saker på egen hand, dock ingen branch denna gång. line 29-52 i platform.js och callar den på 335 i main. Lagt till en funktion väldigt likt vår fiendespawn funktion som spawnar in platformar med ett min/max värde på x/y.
-// inte super-vacker atm men det funkar, undrar om det inte är bättre att limitera den väldigt mycket eller hårdkoda in platformar
-// line 275-281 i main, kommenterade ut i collision.js rad 6 också. pillade lite med att registrera när spelaren hoppar på fiendens huvud för att ta bort denna fiende ur array och eventuellt ge spelaren poäng
-// line 314-324 i main gjorde så att banan scrollar höger/vänster istället för upp/ner. Verkar mycket enklare så kanske ska köra med det istället

@@ -15,3 +15,11 @@ export function timecount(ctx, game) {
   ctx.fillText('Time (sec): ' + game.gameTimer.toFixed(1), 350, 20);
   //console.log(game.deltaTime);
 }
+
+export function pointcounter(ctx) {
+  let points = 0;
+
+  ctx.font = '20px Arial';
+  ctx.fillStyle = 'black';
+  ctx.fillText('Points: ' + points, 550, 20);
+}

@@ -1,4 +1,4 @@
-let enemyImg = document.querySelector("#enemy");
+let enemyImg = document.querySelector('#enemy');
 
 //import { enemyImg } from './main.js';
 
@@ -18,7 +18,7 @@ export function spawnEnemy(game) {
   let y = 20;
 
   let enemy = {
-    x: side ? 20 : 760,
+    x: side ? 100 : 760,
     y,
     velocity: {
       x: 0,
@@ -33,13 +33,13 @@ export function spawnEnemy(game) {
       airtime: false,
       hurt: false,
       currentWalkFrame: 30,
-      framecount: 0
+      framecount: 0,
     },
   };
 
   game.enemies.push(enemy);
 
-  console.log(enemy)
+  console.log(enemy);
 }
 // (img, sx, sy ,swidth, sheight, dx, dy, dwidth, dheight)
 
@@ -104,14 +104,14 @@ export function drawEnemies(ctx, game) {
         enemy.height
       );
       framecount++;
-      if (framecount >= 15) {
+      if (framecount >= 20) {
         framecount = 0;
         currentWalkFrame += 30;
         if (currentWalkFrame > 120) {
           currentWalkFrame = 30;
         }
       }
-    } else if (enemy.state.lookright === true ) {
+    } else if (enemy.state.lookright === true) {
       ctx.drawImage(
         enemyImg,
         currentWalkFrame,
@@ -125,7 +125,7 @@ export function drawEnemies(ctx, game) {
         enemy.height
       );
       framecount++;
-      if (framecount >= 15) {
+      if (framecount >= 20) {
         framecount = 0;
         currentWalkFrame += 30;
         if (currentWalkFrame > 120) {
@@ -148,10 +148,6 @@ export function updateEnemy(game) {
     ) {
       game.enemies.splice(i--, 1);
     }
-
-    // if (enemy.y + enemy.height + enemy.velocity.y >= canvas.height - 30) {
-    //   enemy.velocity.y = 0;
-    // }
     enemy.y += enemy.velocity.y;
     enemy.velocity.y += 100 * game.deltaTime;
   }
@@ -164,5 +160,3 @@ export function tickEnemySpawn(game) {
     game.enemySpawnTimer = Math.random() * 2 + 1;
   }
 }
-
-

@@ -1,4 +1,5 @@
-export function isColliding(player, enemy) {
+// Kollision om spelaren landar uppe på fienderna
+/* export function isColliding(player, enemy) {
   if (
     player.x < enemy.x + enemy.width &&
     player.x + player.width > enemy.x &&
@@ -10,6 +11,7 @@ export function isColliding(player, enemy) {
     return false;
   }
 }
+ */
 // hanterar kollision mellan spelare och platformar
 export function collisionPlayerplatform(player, platform) {
   platform.forEach((platform) => {
@@ -20,6 +22,7 @@ export function collisionPlayerplatform(player, platform) {
       player.x <= platform.x + platform.width
     ) {
       player.velocity.y = 0;
+      player.state.airtime = false;
     }
     if (
       player.y + player.height <= platform.y &&
@@ -31,15 +34,23 @@ export function collisionPlayerplatform(player, platform) {
       player.x + player.width >= platform.x + platform.width
     ) {
       player.velocity.y = 0;
+      player.state.airtime = false;
     }
 
-    if (
-      player.x + player.width >= platform.x &&
-      player.x <= platform.x + platform.width
-    ) {
-      console.log('krock med väg');
-      player.velocity.x = 0;
-    }
+    // if (
+    //   // högersida av spelare krockar med vänster sida av vägg och vänster sida av spelare krockar med höger sida av platform
+    //   player.x + player.width >= platform.x &&
+    //   player.x <= platform.x + platform.width
+    // ) {
+    //   console.log('krock med väg');
+    //   player.velocity.x = 0;
+    // }
+    // if (
+    //   player.x <= platform.x &&
+    //   player.x + player.width >= platform.x + platform.width
+    // ) {
+    //   player.velocity.x = 0;
+    // }
   });
 }
 
@@ -68,4 +79,17 @@ export function collisionEnemiesPlatform(enemies, platform) {
       }
     }
   });
+}
+
+export function isColliding(player, enemy) {
+  if (
+    player.x < enemy.x + enemy.width &&
+    player.x + player.width > enemy.x &&
+    player.y < enemy.y + enemy.height &&
+    player.y + player.height > enemy.y
+  ) {
+    return true;
+  } else {
+    return false;
+  }
 }

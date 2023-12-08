@@ -1,4 +1,4 @@
-let playerImg = document.querySelector("#player");
+let playerImg = document.querySelector('#player');
 
 /* const lookright = player.height * 1;
 const lookleft = player.height * 2;
