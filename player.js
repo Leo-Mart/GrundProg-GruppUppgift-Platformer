@@ -30,10 +30,7 @@ const hurt = 125;
   player.x, player.y, player.width, player.height) */
 
 // Funktioner som ritar ut spelaren
-/* export function drawPlayer(ctx, player) {
-  //console.log(player);
-  //ctx.fillStyle = 'blue';
-  // ctx.fillRect(player.x, player.y, player.width, player.height);
+/*
   ctx.imageSmoothingEnabled = false;
   if (player.state.airtime === true) { // om player i luften
     console.log(player.width);
