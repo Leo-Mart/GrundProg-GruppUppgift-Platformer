@@ -1,5 +1,5 @@
 import { drawPlayer, updatePlayer } from './player.js';
-import { drawPlatforms, tickPlatformSpawn } from './platform.js';
+import { drawPlatforms } from './platform.js';
 import {
   drawEnemies,
   updateEnemy,
@@ -12,6 +12,7 @@ import {
   collisionEnemiesPlatform,
 } from './collision.js';
 import { timecount } from './points&time.js';
+import { drawPowerUp } from './powerups.js';
 
 let canvas = document.getElementById('canvas');
 let ctx = canvas.getContext('2d');
@@ -26,7 +27,7 @@ function initGame(gameWidth, gameHeight) {
 
   return {
     player: {
-      x: gameWidth / 2 - 25,
+      x: gameWidth / 2 - 150,
       y: gameHeight - 100,
       width: 25,
       height: 35,
@@ -41,20 +42,13 @@ function initGame(gameWidth, gameHeight) {
       },
     },
 
-    camerabox: {
-      position: {
-        x: gameWidth / 2 - 25,
-        y: gameHeight - 100,
-      },
-      width: 200,
-      height: 250,
-    },
-
+    powerups: [],
     enemies: [],
     enemySpawnTimer: 1,
     platformSpawnTimer: 3,
     points: 0,
     gameTimer: 0.1,
+    lasers: [],
 
     // eventuellt kunna ge platformar random x/y värden så de spawna in på ett random ställe.
     goal: [
@@ -75,6 +69,14 @@ function initGame(gameWidth, gameHeight) {
     ],
 
     platforms: [
+      // vänstervägen
+      {
+        x: 0,
+        y: 0,
+        width: 20,
+        height: 500,
+        velocity: 0,
+      },
       //marken
       {
         x: 0,
@@ -276,64 +278,33 @@ function tick(ctx, game) {
   }
   for (let i = 0; i < game.goal.length; i++) {
     let goal = game.goal[i];
-    if (isColliding(game.player, game.goal)) {
+    if (isColliding(game.player, goal)) {
       alert('you win!');
       console.log('körs');
     }
   }
 
-  // function updateCameraBox() {
-  //   game.camerabox = {
-  //     position: {
-  //       x: game.player.x - 137.5,
-  //       y: game.player.y - 165,
-  //     },
-  //     width: 300,
-  //     height: 250,
-  //   };
-  // }
-  // updateCameraBox();
-  // ctx.fillStyle = 'rgba(0, 0, 255, 0.3)';
-  // ctx.fillRect(
-  //   game.camerabox.position.x,
-  //   game.camerabox.position.y,
-  //   game.camerabox.width,
-  //   game.camerabox.height
-  // );
-
-  // "scrollar" uppåt efterhand som spelaren rör sig uppåt
-  // if (game.player.keys.jump && game.player.y < game.gameHeight - 450) {
-  //   game.platforms.forEach((platform) => {
-  //     platform.y += 200 * game.deltaTime;
-  //   });
-  // } else if (game.player.y + game.player.height > game.gameHeight - 30) {
-  //   game.platforms.forEach((platform) => {
-  //     platform.y -= 400 * game.deltaTime;
-  //     game.player.velocity.y = 0;
-  //   });
-  // }
-
   // scrollar vänster/höger
-  // if (game.player.x + game.player.width > game.gameWidth - 150) {
-  //   game.platforms.forEach((platform) => {
-  //     platform.x -= 200 * game.deltaTime;
-  //     game.player.velocity.x = 0;
-  //   });
-  // } else if (game.player.x < game.gameWidth - window.innerWidth + 200) {
-  //   game.platforms.forEach((platform) => {
-  //     platform.x += 200 * game.deltaTime;
-  //     game.player.velocity.x = 0;
-  //   });
-  // }
+  if (game.player.x + game.player.width > game.gameWidth - 400) {
+    game.platforms.forEach((platform) => {
+      platform.x -= 200 * game.deltaTime;
+      game.player.velocity.x = 0;
+    });
+  } else if (game.player.x < game.gameWidth - window.innerWidth + 200) {
+    game.platforms.forEach((platform) => {
+      platform.x += 200 * game.deltaTime;
+      game.player.velocity.x = 0;
+    });
+  }
 
-  // scrollar hela tiden
-  game.platforms.forEach((platform) => {
-    platform.x -= 150 * game.deltaTime;
-  });
+  // // scrollar hela tiden
+  // game.platforms.forEach((platform) => {
+  //   platform.x -= 150 * game.deltaTime;
+  // });
 
-  game.goal.forEach((goal) => {
-    goal.x -= 150 * game.deltaTime;
-  });
+  // game.goal.forEach((goal) => {
+  //   goal.x -= 150 * game.deltaTime;
+  // });
 
   // denna funktion hämtar info från platforms arrayn och loopar igenom och ritar ut varje platform. Ritar också ut "marken"
   drawPlatforms(ctx, game);
@@ -348,6 +319,9 @@ function tick(ctx, game) {
 
   // ritar ut spelaren, flyttat ner den hit för att den skall ritas framför platformar
   drawPlayer(ctx, game.player);
+
+  // ritar ut powerups
+  drawPowerUp(ctx);
 
   timecount(ctx, game);
   requestAnimationFrame(() => tick(ctx, game));

@@ -1,8 +1,6 @@
 let playerImg = document.querySelector('#player');
 // Funktioner som ritar ut spelaren
 export function drawPlayer(ctx, player) {
-  ctx.fillStyle = 'blue';
-  // ctx.fillRect(player.x, player.y, player.width, player.height);
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
 }
