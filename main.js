@@ -40,6 +40,11 @@ function initGame(gameWidth, gameHeight) {
         right: false,
         jump: false,
       },
+      state: {
+        airtime: false,
+        left: false,
+        right: true,
+      }
     },
 
     powerups: [],
@@ -223,16 +228,23 @@ window.addEventListener('keydown', (event) => {
     ) {
       game.player.keys.jump = true;
       game.player.velocity.y = -1200 * game.deltaTime;
+      game.player.state.airtime = true;
     }
     // låter spelaren falla genom platformar
   } else if (event.key === 's') {
     game.player.velocity.y += 200 * game.deltaTime;
+    game.player.state.airtime = true;
   }
 
   if (event.key === 'a') {
     game.player.keys.left = true;
+    game.player.state.left = true;
+    game.player.state.right = false;
+
   } else if (event.key === 'd') {
     game.player.keys.right = true;
+    game.player.state.left = false;
+    game.player.state.right = true;
   }
 });
 
@@ -243,6 +255,8 @@ window.addEventListener('keyup', (event) => {
 
   if (event.key === 'd') {
     game.player.keys.right = false;
+  }
+  if (event.key === 'w') {
   }
 });
 
@@ -257,10 +271,11 @@ function tick(ctx, game) {
   drawPlayer(ctx, game.player);
   // hanterar spelarens rörelser och "gravitation"
   updatePlayer(game);
+
   // kollision mellan spelare och platformar och fiender och platformar
   collisionPlayerplatform(game.player, game.platforms);
   collisionEnemiesPlatform(game.enemies, game.platforms);
-
+  
   // kollar kollision mellan fiender och spelaren
   for (let i = 0; i < game.enemies.length; i++) {
     let enemy = game.enemies[i];
@@ -268,8 +283,10 @@ function tick(ctx, game) {
       console.log('här blev det krock!');
       game.enemies.splice(i, 1);
       game.player.velocity.y = -1000 * game.deltaTime;
+      game.player.state.airtime = true;
     }
   }
+
   // om spelaren trillar genom hålen förlorar den
   if (game.player.y >= canvas.height) {
     alert('oh no, you lost!');
@@ -282,6 +299,7 @@ function tick(ctx, game) {
       alert('you win!');
       console.log('körs');
     }
+
   }
 
   // scrollar vänster/höger
