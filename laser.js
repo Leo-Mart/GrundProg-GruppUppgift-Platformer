@@ -20,6 +20,7 @@ export function updateLasers(game) {
         if (isColliding(laser, enemy)) {
           game.lasers.splice(i--, 1);
           game.enemies.splice(l--, 1);
+          game.points += 1;
 
           continue main;
         }
@@ -32,13 +33,26 @@ export function updateLasers(game) {
   }
 }
 
-export function shootLaser(game, entity, playerOwned) {
+export function shootLaserRight(game, entity, playerOwned) {
   let laser = {
     x: entity.x + entity.width / 2 - 2.5,
-    y: entity.y + entity.height / 2 - 15,
-    width: 10,
+    y: entity.y + entity.height / 2 + 5,
+    width: 15,
     height: 5,
-    velX: playerOwned + 800,
+    velX: playerOwned + 1500,
+    playerOwned,
+  };
+
+  game.lasers.push(laser);
+}
+
+export function shootLaserLeft(game, entity, playerOwned) {
+  let laser = {
+    x: entity.x + entity.width / 2 - 2.5,
+    y: entity.y + entity.height / 2 + 5,
+    width: 15,
+    height: 5,
+    velX: playerOwned - 1500,
     playerOwned,
   };
 

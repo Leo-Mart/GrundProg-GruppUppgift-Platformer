@@ -1,16 +1,14 @@
 let enemyImg = document.querySelector('#enemy');
 
-//import { enemyImg } from './main.js';
-
 const lookright = 30;
 const lookleft = 0;
 
-const walkcycle = [2, 3, 4];
+/* const walkcycle = [2, 3, 4]; */
 let currentWalkFrame = 30;
 let framecount = 0;
 
-const standing = 0;
-const jumping = 120;
+/* const standing = 0;
+const jumping = 120; */
 const hurt = 150;
 
 export function spawnEnemy(game) {
@@ -26,7 +24,7 @@ export function spawnEnemy(game) {
     },
     width: 30,
     height: 30,
-    velX: side ? 100 : -100,
+    velX: side ? 200 : -200,
     state: {
       lookleft: side ? false : true,
       lookright: side ? true : false,
@@ -38,15 +36,9 @@ export function spawnEnemy(game) {
   };
 
   game.enemies.push(enemy);
-
-  console.log(enemy);
 }
-// (img, sx, sy ,swidth, sheight, dx, dy, dwidth, dheight)
-
 export function drawEnemies(ctx, game) {
   for (let enemy of game.enemies) {
-    //ctx.fillStyle = 'red';
-    // ctx.fillRect(enemy.x, ednemy.y, enemy.width, enemy.height);
     ctx.imageSmoothingEnabled = false;
     if (enemy.state.hurt === true) {
       drawImage(
@@ -61,35 +53,6 @@ export function drawEnemies(ctx, game) {
         enemy.height
       );
     }
-    /* if (enemy.state.airtime === true) {
-      if (enemy.state.lookleft === true) {
-        drawImage(
-          enemyImg,
-          jumping,
-          lookleft,
-  
-          enemy.width,
-          enemy.height,
-          enemy.x,
-          enemy.y,
-          enemy.width,
-          enemy.height
-        );
-      } else if (enemy.state.lookright === true) {
-      drawImage(
-          enemyImg,
-          jumping,
-          lookright,
-
-          enemy.width,
-          enemy.height,
-          enemy.x,
-          enemy.y,
-          enemy.width,
-          enemy.height
-        );
-      }
-    } */
     if (enemy.state.lookleft === true) {
       ctx.drawImage(
         enemyImg,
@@ -149,7 +112,7 @@ export function updateEnemy(game) {
       game.enemies.splice(i--, 1);
     }
     enemy.y += enemy.velocity.y;
-    enemy.velocity.y += 100 * game.deltaTime;
+    enemy.velocity.y += 50 * game.deltaTime;
   }
 }
 

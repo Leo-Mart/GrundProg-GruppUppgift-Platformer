@@ -9,21 +9,29 @@ import {
 import {
   isColliding,
   collisionPlayerplatform,
-  collisionEnemiesPlatform,
+  collisionEntityPlatform,
+  isCollidingTop,
+  //isCollidingSidesBottom,
+  isCollidingSidesBottom,
 } from './collision.js';
-import { timecount, pointcounter } from './points&time.js';
+import { timecount, pointcounter, powererdupStatus } from './points&time.js';
 import {
   drawPowerUps,
   updatePowerUps,
   spawnPowerups,
   tickPowerupSpawn,
 } from './powerups.js';
-import { drawLasers, updateLasers, shootLaser } from './laser.js';
+import {
+  drawLasers,
+  updateLasers,
+  shootLaserRight,
+  shootLaserLeft,
+} from './laser.js';
 
 let canvas = document.getElementById('canvas');
 let ctx = canvas.getContext('2d');
 
-canvas.width = window.innerWidth;
+canvas.width = 1000;
 canvas.height = 500;
 
 let game = initGame(canvas.width, canvas.height);
@@ -33,7 +41,7 @@ function initGame(gameWidth, gameHeight) {
 
   return {
     player: {
-      x: 150,
+      x: 400,
       y: gameHeight - 100,
       width: 25,
       height: 35,
@@ -63,7 +71,6 @@ function initGame(gameWidth, gameHeight) {
     gameTimer: 0.1,
     lasers: [],
 
-    // eventuellt kunna ge platformar random x/y värden så de spawna in på ett random ställe.
     goal: [
       {
         x: 4150,
@@ -80,17 +87,7 @@ function initGame(gameWidth, gameHeight) {
         velocity: 0,
       },
     ],
-
-    platforms: [
-      // vänstervägen
-      {
-        x: 0,
-        y: 0,
-        width: 20,
-        height: 500,
-        velocity: 0,
-      },
-      //marken
+    ground: [
       {
         x: 0,
         y: 470,
@@ -131,6 +128,16 @@ function initGame(gameWidth, gameHeight) {
         y: 420,
         width: 500,
         height: 80,
+        velocity: 0,
+      },
+    ],
+    platforms: [
+      // vänstervägen
+      {
+        x: 0,
+        y: 0,
+        width: 20,
+        height: 500,
         velocity: 0,
       },
       // platformar
@@ -240,7 +247,7 @@ window.addEventListener('keydown', (event) => {
     }
     // låter spelaren falla genom platformar
   } else if (event.key === 's') {
-    game.player.velocity.y += 200 * game.deltaTime;
+    game.player.velocity.y += 40 * game.deltaTime;
     game.player.state.airtime = true;
   }
 
@@ -263,8 +270,12 @@ window.addEventListener('keyup', (event) => {
   if (event.key === 'd') {
     game.player.keys.right = false;
   }
-  if (event.key === ' ') {
-    shootLaser(game, game.player, true);
+  if (event.key === ' ' && game.player.powererdup === true) {
+    if (game.player.state.right === true) {
+      shootLaserRight(game, game.player, true);
+    } else if (game.player.state.left === true) {
+      shootLaserLeft(game, game.player, true);
+    }
   }
 });
 
@@ -282,8 +293,20 @@ function tick(ctx, game) {
 
   // kollision mellan spelare och platformar och fiender och platformar
   collisionPlayerplatform(game.player, game.platforms);
-  collisionEnemiesPlatform(game.enemies, game.platforms);
-  collisionEnemiesPlatform(game.powerups, game.platforms);
+  collisionEntityPlatform(game.enemies, game.platforms);
+  collisionEntityPlatform(game.enemies, game.ground);
+  // kollision mellan powerups och platform
+  collisionEntityPlatform(game.powerups, game.platforms);
+  //kollision mellan powerups och marken
+  collisionEntityPlatform(game.powerups, game.ground);
+
+  for (let i = 0; i < game.ground.length; i++) {
+    let ground = game.ground[i];
+    if (isColliding(game.player, ground)) {
+      game.player.velocity.y = 0;
+      game.player.state.airtime = false;
+    }
+  }
 
   // kollar kollision mellan fiender och spelaren
   for (let i = 0; i < game.enemies.length; i++) {
@@ -292,6 +315,27 @@ function tick(ctx, game) {
       game.enemies.splice(i, 1);
       game.player.velocity.y = -1000 * game.deltaTime;
       game.player.state.airtime = true;
+    }
+    // if (isCollidingTop(game.player, enemy)) {
+    //   // game.enemies.splice(i, 1);
+    //   game.player.velocity.y = -500 * game.deltaTime;
+    //   game.player.state.airtime = true;
+    //   game.points += 1;
+    //   console.log('landar på fiende');
+    //   console.log(enemy);
+    //   console.log(player.x);
+    //   console.log(player.y);
+    // }
+    /* if (isCollidingSide(game.player, enemy)) {
+      console.log('Blir träffad från sidan');
+    } */
+    // if (isCollidingSidesBottom(game.player, enemy)) {
+    //   // alert('oh no you died');
+    //   game.enemies.splice(i, 1);
+    // }
+
+    if (enemy.y >= canvas.height) {
+      game.enemies.splice(i, 1);
     }
   }
 
@@ -304,50 +348,57 @@ function tick(ctx, game) {
     }
   }
 
+  // kollision mellan spelare och powerup
+  for (let i = 0; i < game.powerups.length; i++) {
+    let powerup = game.powerups[i];
+    if (isColliding(game.player, powerup)) {
+      game.player.powererdup = true;
+      game.powerups.splice(i, 1);
+    }
+  }
+
   // om spelaren trillar genom hålen förlorar den
   if (game.player.y >= canvas.height) {
     alert('oh no, you lost!');
     // starta om spelet här
   }
 
-  // scrollar vänster/höger
-  // if (game.player.x + game.player.width > game.gameWidth - 600) {
-  //   game.platforms.forEach((platform) => {
-  //     if (game.player.keys.right) {
-  //       platform.x -= 300 * game.deltaTime;
-  //       game.player.velocity.x = 0;
-  //     }
-  //   });
-  // } else if (game.player.x < game.gameWidth - window.innerWidth + 200) {
-  //   game.platforms.forEach((platform) => {
-  //     if (game.player.keys.left) {
-  //       platform.x += 300 * game.deltaTime;
-  //       game.player.velocity.x = 0;
-  //     }
-  //   });
-  // }
-
   if (game.player.keys.right) {
     // scrollar hela tiden
     game.platforms.forEach((platform) => {
-      platform.x -= 150 * game.deltaTime;
+      platform.x -= 300 * game.deltaTime;
     });
 
     game.goal.forEach((goal) => {
-      goal.x -= 150 * game.deltaTime;
+      goal.x -= 300 * game.deltaTime;
+    });
+    game.ground.forEach((ground) => {
+      ground.x -= 300 * game.deltaTime;
+    });
+    game.powerups.forEach((powerup) => {
+      powerup.x -= 300 * game.deltaTime;
+    });
+    game.enemies.forEach((enemy) => {
+      enemy.x -= 300 * game.deltaTime;
     });
   } else if (game.player.keys.left) {
     game.platforms.forEach((platform) => {
-      platform.x += 150 * game.deltaTime;
+      platform.x += 300 * game.deltaTime;
     });
 
     game.goal.forEach((goal) => {
-      goal.x += 150 * game.deltaTime;
+      goal.x += 300 * game.deltaTime;
+    });
+    game.ground.forEach((ground) => {
+      ground.x += 300 * game.deltaTime;
+    });
+    game.powerups.forEach((powerup) => {
+      powerup.x += 300 * game.deltaTime;
+    });
+    game.enemies.forEach((enemy) => {
+      enemy.x += 300 * game.deltaTime;
     });
   }
-
-  drawLasers(ctx, game);
-  updateLasers(game);
 
   // denna funktion hämtar info från platforms arrayn och loopar igenom och ritar ut varje platform. Ritar också ut "marken"
   drawPlatforms(ctx, game);
@@ -366,9 +417,16 @@ function tick(ctx, game) {
   updatePowerUps(game);
 
   timecount(ctx, game);
-  pointcounter(ctx);
+  pointcounter(ctx, game.points);
+  powererdupStatus(ctx, game.player);
+
+  // ritar ut skott
+  drawLasers(ctx, game);
+  updateLasers(game);
+
   requestAnimationFrame(() => tick(ctx, game));
 }
+
 // ************ TODO ******************
 // X lägg in gravitation på spelare/fiender så de ramlar ner på platformar
 // X rita in platformar mer dynamisk, dock skall väl platformana vara fasta så vi kanske bara hårdkodar in dessa?
@@ -381,10 +439,11 @@ function tick(ctx, game) {
 // x bygg en bana, med mål, finns en bana men målet vill inte ritas ut.
 // x lägga in art, få det att funka med "broken state"
 // x eventuellt death pits och liknande hinder
-// fixa rörelser/collision.
+// x powerups, spawnar in och har kollision med platformar, fixa kollision med spelaren och att den ger sin powerup
+// collision.
 // collision för att förlora/dö
-// powerups, spawnar in och har kollision med platformar, fixa kollision med spelaren och att den ger sin powerup
 // spelet starta om när man träffar mål eller dör
+// fixa att gubben åker ner lite i marken, gravitation som spökar?
 // eventuellt lite design
 // eventuellt highscore och sånt, kanske spara i localstorage
 // rensa ut koden

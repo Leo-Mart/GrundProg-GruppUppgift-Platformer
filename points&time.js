@@ -16,10 +16,23 @@ export function timecount(ctx, game) {
   //console.log(game.deltaTime);
 }
 
-export function pointcounter(ctx) {
-  let points = 0;
-
+export function pointcounter(ctx, points) {
   ctx.font = '20px Arial';
   ctx.fillStyle = 'black';
   ctx.fillText('Points: ' + points, 550, 20);
+}
+
+/* export function livescounter(ctx) {
+  ctx.font = '20px Arial';
+  ctx.fillStyle = 'black';
+  ctx.fillText('Lives: ' + lives, 550, 20);
+} */
+
+export function powererdupStatus(ctx, player) {
+  if (player.powererdup === true) {
+    ctx.font = '20px Arial';
+    ctx.fillStyle = 'black';
+    ctx.fillText('Powererd Up!', 750, 20);
+    ctx.fillText('Press Spacebar to shoot!', 700, 45);
+  }
 }

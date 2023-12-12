@@ -2,7 +2,7 @@ let powerupImg = document.querySelector('#powerup');
 
 export function spawnPowerups(game) {
   let powerup = {
-    x: 1000,
+    x: 500,
     y: 40,
     velocity: {
       x: 0,
