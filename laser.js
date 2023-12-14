@@ -2,7 +2,7 @@ import { isColliding } from './collision.js';
 
 export function drawLasers(ctx, game) {
   for (let laser of game.lasers) {
-    ctx.fillstyle = 'blue';
+    ctx.fillStyle = 'blue';
     ctx.fillRect(laser.x, laser.y, laser.width, laser.height);
   }
 }

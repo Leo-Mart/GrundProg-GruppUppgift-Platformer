@@ -1,17 +1,3 @@
-// Kollision om spelaren landar uppe på fienderna
-/* export function isColliding(player, enemy) {
-  if (
-    player.x < enemy.x + enemy.width &&
-    player.x + player.width > enemy.x &&
-    player.y < enemy.y + enemy.height &&
-    player.y + player.height > enemy.y
-  ) {
-    return true;
-  } else {
-    return false;
-  }
-}
- */
 // hanterar kollision mellan spelare och platformar
 export function collisionPlayerplatform(player, platform) {
   platform.forEach((platform) => {
@@ -66,12 +52,12 @@ export function collisionEntityPlatform(entitys, platform) {
   });
 }
 
-export function isColliding(player, enemy) {
+export function isColliding(player, object) {
   if (
-    player.x < enemy.x + enemy.width &&
-    player.x + player.width > enemy.x &&
-    player.y < enemy.y + enemy.height &&
-    player.y + player.height > enemy.y
+    player.x < object.x + object.width &&
+    player.x + player.width > object.x &&
+    player.y < object.y + object.height &&
+    player.y + player.height > object.y
   ) {
     return true;
   } else {
@@ -79,47 +65,45 @@ export function isColliding(player, enemy) {
   }
 }
 
-/* export function isCollidingTop(player, enemy) {
-  // Om spelaren landar uppe på fienden
+/* export function collision(r1, r2) {
   if (
-    player.x + player.height === enemy.x &&
-    player.y + player.width / 2 === enemy.y + enemy.width
+    r1.x + r1.width >= r2.x &&
+    r1.x <= r2.x + r2.width &&
+    r1.y + r1.height >= r2.y &&
+    r1.y <= r2.y + r2.heighta
   ) {
-    return true;
-  } else {
-    return false;
-  }
-}
+    const top_diff = r2.y + r2.height - r1.y;
+    const bottom_diff = r1.y + r1.height - r2.y;
+    const left_diff = r2.x + r2.width - r1.x;
+    const right_diff = r1.x + r1.width - r2.x;
 
-export function isCollidingSide(player, enemy) {
-  // Om spelaren rör vid fieneden på sidan
-  if (enemy.x) {
-    return true;
-  } else {
-    return false;
+    const min = Math.min(bottom_diff, top_diff, left_diff, right_diff);
+
+    return {
+      bottom: bottom_diff == min,
+      right: right_diff == min,
+      left: left_diff == min,
+      top: top_diff == min,
+    };
   }
-} */
+  return null;
+}
 
 export function isCollidingTop(player, enemy) {
   if (
-    player.y + player.height === enemy.y + enemy.width &&
-    player.x + player.height === enemy.x + enemy.width
+    // Spelare vänster om fienden
+    ((player.x <= enemy.x && // Spelarens vänstersida UTANFÖR fiendens vänstersida
+      player.x + player.width > enemy.x) || // Spelarens högersida INNANFÖR fiendens vänstersida
+      // Spelare höger om fienden
+      (player.x >= enemy.x && // Spelarens högersida INNANFÖR fiendens högersida
+        player.x < enemy.x + enemy.width)) && // Spelarens högersida
+    // Spelaren uppepå fiendens hitbox
+    player.y + player.height === enemy.y
   ) {
+    console.log('test1');
     return true;
   } else {
     return false;
   }
 }
-
-export function isCollidingSidesBottom(player, enemy) {
-  if (
-    player.x + player.width >= enemy.x &&
-    player.y <= enemy.y + enemy.height &&
-    player.x <= enemy.x + enemy.width &&
-    player.y + player.height >= enemy.y
-  ) {
-    return true;
-  } else {
-    return false;
-  }
-}
+ */

@@ -26,9 +26,9 @@ export function updatePlayer(game) {
   const player = game.player;
 
   if (player.keys.left && player.x > 0) {
-    player.x -= player.velocity.x + 5 * game.deltaTime;
+    player.x -= player.velocity.x * game.deltaTime;
   } else if (player.keys.right && player.x + player.width < game.gameWidth) {
-    player.x += player.velocity.x + 5 * game.deltaTime;
+    player.x += player.velocity.x * game.deltaTime;
   }
   // "gravitation" på spelaren, så den faller nedåt så länge den inte hoppar
   player.y += player.velocity.y;

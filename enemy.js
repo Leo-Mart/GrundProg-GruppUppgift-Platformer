@@ -16,7 +16,7 @@ export function spawnEnemy(game) {
   let y = 20;
 
   let enemy = {
-    x: side ? 100 : 760,
+    x: side ? 100 : 900,
     y,
     velocity: {
       x: 0,
@@ -112,7 +112,7 @@ export function updateEnemy(game) {
       game.enemies.splice(i--, 1);
     }
     enemy.y += enemy.velocity.y;
-    enemy.velocity.y += 50 * game.deltaTime;
+    enemy.velocity.y += 30 * game.deltaTime;
   }
 }
 
@@ -120,6 +120,6 @@ export function tickEnemySpawn(game) {
   game.enemySpawnTimer -= game.deltaTime;
   if (game.enemySpawnTimer <= 0) {
     spawnEnemy(game);
-    game.enemySpawnTimer = Math.random() * 2 + 1;
+    game.enemySpawnTimer = Math.random() + 0.5;
   }
 }

@@ -10,17 +10,9 @@ import {
   isColliding,
   collisionPlayerplatform,
   collisionEntityPlatform,
-  isCollidingTop,
-  //isCollidingSidesBottom,
-  isCollidingSidesBottom,
 } from './collision.js';
 import { timecount, pointcounter, powererdupStatus } from './points&time.js';
-import {
-  drawPowerUps,
-  updatePowerUps,
-  spawnPowerups,
-  tickPowerupSpawn,
-} from './powerups.js';
+import { drawPowerUps, updatePowerUps, spawnPowerups } from './powerups.js';
 import {
   drawLasers,
   updateLasers,
@@ -30,6 +22,7 @@ import {
 
 let canvas = document.getElementById('canvas');
 let ctx = canvas.getContext('2d');
+let backgroundImg = document.getElementById('background');
 
 canvas.width = 1000;
 canvas.height = 500;
@@ -65,12 +58,42 @@ function initGame(gameWidth, gameHeight) {
     powerups: [],
     enemies: [],
     enemySpawnTimer: 1,
-    platformSpawnTimer: 3,
     powerupSpawnTimer: 10,
     points: 0,
     gameTimer: 0.1,
     lasers: [],
-
+    spawnHoles: [
+      {
+        x: 100,
+        y: 20,
+        width: 50,
+        height: 50,
+        velocity: 0,
+      },
+      {
+        x: 900,
+        y: 20,
+        width: 50,
+        height: 50,
+        velocity: 0,
+      },
+    ],
+    walls: [
+      {
+        x: 0,
+        y: 0,
+        width: 20,
+        height: 500,
+        velocity: 0,
+      },
+      {
+        x: 1650,
+        y: 420,
+        width: 20,
+        height: 80,
+        velocity: 0,
+      },
+    ],
     goal: [
       {
         x: 4150,
@@ -132,18 +155,10 @@ function initGame(gameWidth, gameHeight) {
       },
     ],
     platforms: [
-      // vänstervägen
-      {
-        x: 0,
-        y: 0,
-        width: 20,
-        height: 500,
-        velocity: 0,
-      },
       // platformar
       {
         x: 800,
-        y: 200,
+        y: 250,
         width: -300,
         height: 10,
         velocity: 0,
@@ -157,14 +172,14 @@ function initGame(gameWidth, gameHeight) {
       },
       {
         x: 0,
-        y: 200,
+        y: 250,
         width: 200,
         height: 10,
         velocity: 0,
       },
       {
         x: 270,
-        y: 200,
+        y: 250,
         width: 150,
         height: 10,
         velocity: 0,
@@ -234,6 +249,7 @@ function initGame(gameWidth, gameHeight) {
     deltaTime: 0,
   };
 }
+// lyssnar efter event på w/a/s/d och space för att röra spelaren och skjuta, när denne har en powerup
 window.addEventListener('keydown', (event) => {
   if (event.key === 'w') {
     // låter spelaren hoppa endast när den inte redan hoppar.
@@ -246,12 +262,12 @@ window.addEventListener('keydown', (event) => {
       game.player.state.airtime = true;
     }
     // låter spelaren falla genom platformar
-  } else if (event.key === 's') {
+  } else if (event.key === 's' && game.player.y <= 350) {
     game.player.velocity.y += 40 * game.deltaTime;
     game.player.state.airtime = true;
   }
 
-  if (event.key === 'a') {
+  if (event.key === 'a' && game) {
     game.player.keys.left = true;
     game.player.state.left = true;
     game.player.state.right = false;
@@ -279,6 +295,7 @@ window.addEventListener('keyup', (event) => {
   }
 });
 
+// ritar ut spelet och sköter logiken
 function tick(ctx, game) {
   let now = Date.now();
   game.deltaTime = (now - game.lastTime) / 1000;
@@ -291,49 +308,44 @@ function tick(ctx, game) {
   // hanterar spelarens rörelser och "gravitation"
   updatePlayer(game);
 
-  // kollision mellan spelare och platformar och fiender och platformar
+  // kollision mellan spelare och platformar
   collisionPlayerplatform(game.player, game.platforms);
+  // kollision mellan spelare och marken
+  collisionPlayerplatform(game.player, game.ground);
+  // kollision mellan fiender och platformar
   collisionEntityPlatform(game.enemies, game.platforms);
+  // kollision mellan fiender och marken
   collisionEntityPlatform(game.enemies, game.ground);
+
   // kollision mellan powerups och platform
   collisionEntityPlatform(game.powerups, game.platforms);
   //kollision mellan powerups och marken
   collisionEntityPlatform(game.powerups, game.ground);
 
-  for (let i = 0; i < game.ground.length; i++) {
-    let ground = game.ground[i];
-    if (isColliding(game.player, ground)) {
-      game.player.velocity.y = 0;
-      game.player.state.airtime = false;
+  // kollision med vänsterväg och hög platform, funkar typ
+  for (let i = 0; i < game.walls.length; i++) {
+    let wall = game.walls[i];
+    if (game.player.keys.left && isColliding(game.player, wall)) {
+      game.player.keys.left = false;
+      game.player.x += 5;
+    } else if (game.player.keys.right && isColliding(game.player, wall)) {
+      game.player.keys.right = false;
+      game.player.x -= 5;
     }
   }
-
   // kollar kollision mellan fiender och spelaren
+
   for (let i = 0; i < game.enemies.length; i++) {
     let enemy = game.enemies[i];
+    // Om spelaren landar uppepå fieneden
     if (isColliding(game.player, enemy)) {
+      game.points -= 1;
       game.enemies.splice(i, 1);
-      game.player.velocity.y = -1000 * game.deltaTime;
+      game.player.velocity.y = -500 * game.deltaTime;
       game.player.state.airtime = true;
     }
-    // if (isCollidingTop(game.player, enemy)) {
-    //   // game.enemies.splice(i, 1);
-    //   game.player.velocity.y = -500 * game.deltaTime;
-    //   game.player.state.airtime = true;
-    //   game.points += 1;
-    //   console.log('landar på fiende');
-    //   console.log(enemy);
-    //   console.log(player.x);
-    //   console.log(player.y);
-    // }
-    /* if (isCollidingSide(game.player, enemy)) {
-      console.log('Blir träffad från sidan');
-    } */
-    // if (isCollidingSidesBottom(game.player, enemy)) {
-    //   // alert('oh no you died');
-    //   game.enemies.splice(i, 1);
-    // }
 
+    // tar väck fiender om de hamnar utanför canvas
     if (enemy.y >= canvas.height) {
       game.enemies.splice(i, 1);
     }
@@ -344,7 +356,7 @@ function tick(ctx, game) {
     let goal = game.goal[i];
     if (isColliding(game.player, goal)) {
       alert('you win!');
-      // starta om spelet här
+      resetGame(game, canvas.width, canvas.height);
     }
   }
 
@@ -360,11 +372,10 @@ function tick(ctx, game) {
   // om spelaren trillar genom hålen förlorar den
   if (game.player.y >= canvas.height) {
     alert('oh no, you lost!');
-    // starta om spelet här
+    resetGame(game, canvas.width, canvas.height);
   }
-
+  // scrollar spelet så länge spelare håller ner antigen a eller d
   if (game.player.keys.right) {
-    // scrollar hela tiden
     game.platforms.forEach((platform) => {
       platform.x -= 300 * game.deltaTime;
     });
@@ -380,6 +391,9 @@ function tick(ctx, game) {
     });
     game.enemies.forEach((enemy) => {
       enemy.x -= 300 * game.deltaTime;
+    });
+    game.walls.forEach((wall) => {
+      wall.x -= 300 * game.deltaTime;
     });
   } else if (game.player.keys.left) {
     game.platforms.forEach((platform) => {
@@ -398,7 +412,14 @@ function tick(ctx, game) {
     game.enemies.forEach((enemy) => {
       enemy.x += 300 * game.deltaTime;
     });
+    game.walls.forEach((wall) => {
+      wall.x += 300 * game.deltaTime;
+    });
   }
+
+  // ritar ut skott
+  drawLasers(ctx, game);
+  updateLasers(game);
 
   // denna funktion hämtar info från platforms arrayn och loopar igenom och ritar ut varje platform. Ritar också ut "marken"
   drawPlatforms(ctx, game);
@@ -412,40 +433,228 @@ function tick(ctx, game) {
   drawPlayer(ctx, game.player);
 
   // ritar ut powerups
-  tickPowerupSpawn(game);
   drawPowerUps(ctx, game);
   updatePowerUps(game);
 
+  // timer, poäng och powerup visare
   timecount(ctx, game);
   pointcounter(ctx, game.points);
   powererdupStatus(ctx, game.player);
 
-  // ritar ut skott
-  drawLasers(ctx, game);
-  updateLasers(game);
-
   requestAnimationFrame(() => tick(ctx, game));
 }
-
+spawnPowerups(game);
 // ************ TODO ******************
-// X lägg in gravitation på spelare/fiender så de ramlar ner på platformar
-// X rita in platformar mer dynamisk, dock skall väl platformana vara fasta så vi kanske bara hårdkodar in dessa?
-// X lägga skapade platformar direkt i array och komma åt dem? Kanske typ göra platform = ctx.fillrect(x,y,w,h) och pusha den till en array som vi sedan kan kalla på för att fixa med kollision osv.
-// X kollision på platformar
-// X eventuellt skapa en constructor/class för att dynamiskt skapa platformar, har gjort detta men är nog snyggare att hårdkoda in plattformar.
-// X kollision på fiender och platformar
-// X bygg vidare på hoppfunktionen så man inte kan spamma för mycket.
-// X kollision mellan fiender och spelare, gör inte mycket just nu dock
-// x bygg en bana, med mål, finns en bana men målet vill inte ritas ut.
-// x lägga in art, få det att funka med "broken state"
-// x eventuellt death pits och liknande hinder
-// x powerups, spawnar in och har kollision med platformar, fixa kollision med spelaren och att den ger sin powerup
 // collision.
-// collision för att förlora/dö
-// spelet starta om när man träffar mål eller dör
-// fixa att gubben åker ner lite i marken, gravitation som spökar?
 // eventuellt lite design
 // eventuellt highscore och sånt, kanske spara i localstorage
 // rensa ut koden
 
-// powerups och ett mål så är vi ok för g
+// denna funktion ställer om allt till standardvärden, används när vi vill återställa/starta om spelet.
+function resetGame(game, gameWidth, gameHeight) {
+  spawnPowerups(game);
+
+  game.player.x = 400;
+  game.player.y = gameHeight - 100;
+  game.player.width = 25;
+  game.player.height = 35;
+  game.player.velocity.x = 0;
+  game.player.velocity.y = 0;
+
+  game.player.keys.left = false;
+  game.player.keys.right = false;
+  game.player.keys.jump = false;
+
+  game.player.state.airtime = false;
+  game.player.state.left = false;
+  game.player.state.right = true;
+
+  game.player.powererdup = false;
+
+  game.powerups = [];
+  game.enemies = [];
+  game.enemySpawnTimer = 1;
+  game.powerupSpawnTimer = 10;
+  game.points = 0;
+  game.gameTim = 0.1;
+
+  game.lasers = [];
+  game.walls = [
+    {
+      x: 0,
+      y: 0,
+      width: 20,
+      height: 500,
+      velocity: 0,
+    },
+    {
+      x: 1650,
+      y: 420,
+      width: 20,
+      height: 80,
+      velocity: 0,
+    },
+  ];
+  game.goal = [
+    {
+      x: 4150,
+      y: 280,
+      width: 10,
+      height: 150,
+      velocity: 0,
+    },
+    {
+      x: 4150,
+      y: 250,
+      width: 50,
+      height: 35,
+      velocity: 0,
+    },
+  ];
+  game.ground = [
+    {
+      x: 0,
+      y: 470,
+      width: 500,
+      height: 30,
+      velocity: 0,
+    },
+    {
+      x: 550,
+      y: 470,
+      width: 500,
+      height: 30,
+      velocity: 0,
+    },
+    {
+      x: 1150,
+      y: 470,
+      width: 500,
+      height: 30,
+      velocity: 0,
+    },
+    {
+      x: 1650,
+      y: 420,
+      width: 500,
+      height: 80,
+      velocity: 0,
+    },
+    {
+      x: 2450,
+      y: 420,
+      width: 500,
+      height: 80,
+      velocity: 0,
+    },
+    {
+      x: 3700,
+      y: 420,
+      width: 500,
+      height: 80,
+      velocity: 0,
+    },
+  ];
+  game.platforms = [
+    // vänstervägen
+    {
+      x: 0,
+      y: 0,
+      width: 20,
+      height: 500,
+      velocity: 0,
+    },
+    // platformar
+    {
+      x: 800,
+      y: 200,
+      width: -300,
+      height: 10,
+      velocity: 0,
+    },
+    {
+      x: 800,
+      y: 350,
+      width: -300,
+      height: 10,
+      velocity: 0,
+    },
+    {
+      x: 0,
+      y: 200,
+      width: 200,
+      height: 10,
+      velocity: 0,
+    },
+    {
+      x: 270,
+      y: 200,
+      width: 150,
+      height: 10,
+      velocity: 0,
+    },
+    {
+      x: 270,
+      y: 350,
+      width: 150,
+      height: 10,
+      velocity: 0,
+    },
+    {
+      x: 1200,
+      y: 350,
+      width: 150,
+      height: 10,
+      velocity: 0,
+    },
+    {
+      x: 1200,
+      y: 200,
+      width: 150,
+      height: 10,
+      velocity: 0,
+    },
+    {
+      x: 1800,
+      y: 100,
+      width: 150,
+      height: 10,
+      velocity: 0,
+    },
+    {
+      x: 2200,
+      y: 350,
+      width: 150,
+      height: 10,
+      velocity: 0,
+    },
+    {
+      x: 3000,
+      y: 350,
+      width: 150,
+      height: 10,
+      velocity: 0,
+    },
+    {
+      x: 3300,
+      y: 350,
+      width: 150,
+      height: 10,
+      velocity: 0,
+    },
+    {
+      x: 3500,
+      y: 350,
+      width: 150,
+      height: 10,
+      velocity: 0,
+    },
+  ];
+
+  game.gameWidth = gameWidth;
+  game.gameHeight = gameHeight;
+
+  game.lastTime = Date.now();
+  game.deltaTime = 0;
+  game.gameTimer = 0;
+}
