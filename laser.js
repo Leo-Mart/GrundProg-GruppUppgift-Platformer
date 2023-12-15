@@ -2,7 +2,7 @@ import { isColliding } from './collision.js';
 
 export function drawLasers(ctx, game) {
   for (let laser of game.lasers) {
-    ctx.fillStyle = 'blue';
+    ctx.fillStyle = 'yellow';
     ctx.fillRect(laser.x, laser.y, laser.width, laser.height);
   }
 }
@@ -38,7 +38,7 @@ export function shootLaserRight(game, entity, playerOwned) {
     x: entity.x + entity.width / 2 - 2.5,
     y: entity.y + entity.height / 2 + 5,
     width: 15,
-    height: 5,
+    height: 3,
     velX: playerOwned + 1500,
     playerOwned,
   };
@@ -51,7 +51,7 @@ export function shootLaserLeft(game, entity, playerOwned) {
     x: entity.x + entity.width / 2 - 2.5,
     y: entity.y + entity.height / 2 + 5,
     width: 15,
-    height: 5,
+    height: 3,
     velX: playerOwned - 1500,
     playerOwned,
   };

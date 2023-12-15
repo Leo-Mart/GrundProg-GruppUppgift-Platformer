@@ -12,7 +12,7 @@ import {
   collisionEntityPlatform,
 } from './collision.js';
 import { timecount, pointcounter, powererdupStatus } from './points&time.js';
-import { drawPowerUps, updatePowerUps, spawnPowerups } from './powerups.js';
+import { drawPowerUps, updatePowerUps } from './powerups.js';
 import {
   drawLasers,
   updateLasers,
@@ -22,7 +22,8 @@ import {
 
 let canvas = document.getElementById('canvas');
 let ctx = canvas.getContext('2d');
-let backgroundImg = document.getElementById('background');
+let backgroundImg = new Image();
+backgroundImg.src = './images/bg_platform.png';
 
 canvas.width = 1000;
 canvas.height = 500;
@@ -55,7 +56,18 @@ function initGame(gameWidth, gameHeight) {
       powererdup: false,
     },
 
-    powerups: [],
+    powerups: [
+      {
+        x: 1300,
+        y: 50,
+        velocity: {
+          x: 0,
+          y: 0,
+        },
+        width: 15,
+        height: 15,
+      },
+    ],
     enemies: [],
     enemySpawnTimer: 1,
     powerupSpawnTimer: 10,
@@ -68,14 +80,12 @@ function initGame(gameWidth, gameHeight) {
         y: 20,
         width: 50,
         height: 50,
-        velocity: 0,
       },
       {
         x: 900,
         y: 20,
         width: 50,
         height: 50,
-        velocity: 0,
       },
     ],
     walls: [
@@ -84,30 +94,20 @@ function initGame(gameWidth, gameHeight) {
         y: 0,
         width: 20,
         height: 500,
-        velocity: 0,
       },
       {
         x: 1650,
         y: 420,
         width: 20,
         height: 80,
-        velocity: 0,
       },
     ],
     goal: [
       {
         x: 4150,
-        y: 280,
-        width: 10,
-        height: 150,
-        velocity: 0,
-      },
-      {
-        x: 4150,
-        y: 250,
+        y: 270,
         width: 50,
-        height: 35,
-        velocity: 0,
+        height: 150,
       },
     ],
     ground: [
@@ -116,42 +116,36 @@ function initGame(gameWidth, gameHeight) {
         y: 470,
         width: 500,
         height: 30,
-        velocity: 0,
       },
       {
         x: 550,
         y: 470,
         width: 500,
         height: 30,
-        velocity: 0,
       },
       {
         x: 1150,
         y: 470,
         width: 500,
         height: 30,
-        velocity: 0,
       },
       {
         x: 1650,
         y: 420,
         width: 500,
         height: 80,
-        velocity: 0,
       },
       {
         x: 2450,
         y: 420,
         width: 500,
         height: 80,
-        velocity: 0,
       },
       {
         x: 3700,
         y: 420,
         width: 500,
         height: 80,
-        velocity: 0,
       },
     ],
     platforms: [
@@ -161,84 +155,72 @@ function initGame(gameWidth, gameHeight) {
         y: 250,
         width: -300,
         height: 10,
-        velocity: 0,
       },
       {
         x: 800,
         y: 350,
         width: -300,
         height: 10,
-        velocity: 0,
       },
       {
         x: 0,
         y: 250,
         width: 200,
         height: 10,
-        velocity: 0,
       },
       {
         x: 270,
         y: 250,
         width: 150,
         height: 10,
-        velocity: 0,
       },
       {
         x: 270,
         y: 350,
         width: 150,
         height: 10,
-        velocity: 0,
       },
       {
         x: 1200,
         y: 350,
         width: 150,
         height: 10,
-        velocity: 0,
       },
       {
         x: 1200,
         y: 200,
         width: 150,
         height: 10,
-        velocity: 0,
       },
       {
         x: 1800,
         y: 100,
         width: 150,
         height: 10,
-        velocity: 0,
       },
       {
         x: 2200,
         y: 350,
         width: 150,
         height: 10,
-        velocity: 0,
       },
       {
         x: 3000,
         y: 350,
         width: 150,
         height: 10,
-        velocity: 0,
       },
       {
         x: 3300,
         y: 350,
         width: 150,
         height: 10,
-        velocity: 0,
       },
       {
         x: 3500,
         y: 350,
         width: 150,
         height: 10,
-        velocity: 0,
       },
     ],
 
@@ -339,10 +321,8 @@ function tick(ctx, game) {
     let enemy = game.enemies[i];
     // Om spelaren landar uppepå fieneden
     if (isColliding(game.player, enemy)) {
-      game.points -= 1;
-      game.enemies.splice(i, 1);
-      game.player.velocity.y = -500 * game.deltaTime;
-      game.player.state.airtime = true;
+      alert('oh no, you lost!');
+      resetGame(game, canvas.width, canvas.height);
     }
 
     // tar väck fiender om de hamnar utanför canvas
@@ -355,7 +335,7 @@ function tick(ctx, game) {
   for (let i = 0; i < game.goal.length; i++) {
     let goal = game.goal[i];
     if (isColliding(game.player, goal)) {
-      alert('you win!');
+      alert('You win!');
       resetGame(game, canvas.width, canvas.height);
     }
   }
@@ -379,7 +359,6 @@ function tick(ctx, game) {
     game.platforms.forEach((platform) => {
       platform.x -= 300 * game.deltaTime;
     });
-
     game.goal.forEach((goal) => {
       goal.x -= 300 * game.deltaTime;
     });
@@ -416,6 +395,8 @@ function tick(ctx, game) {
       wall.x += 300 * game.deltaTime;
     });
   }
+  //rita ut bakgrund
+  ctx.drawImage(backgroundImg, 0, 0);
 
   // ritar ut skott
   drawLasers(ctx, game);
@@ -443,7 +424,6 @@ function tick(ctx, game) {
 
   requestAnimationFrame(() => tick(ctx, game));
 }
-spawnPowerups(game);
 // ************ TODO ******************
 // collision.
 // eventuellt lite design
@@ -452,8 +432,6 @@ spawnPowerups(game);
 
 // denna funktion ställer om allt till standardvärden, används när vi vill återställa/starta om spelet.
 function resetGame(game, gameWidth, gameHeight) {
-  spawnPowerups(game);
-
   game.player.x = 400;
   game.player.y = gameHeight - 100;
   game.player.width = 25;
@@ -471,7 +449,18 @@ function resetGame(game, gameWidth, gameHeight) {
 
   game.player.powererdup = false;
 
-  game.powerups = [];
+  game.powerups = [
+    {
+      x: 1300,
+      y: 50,
+      velocity: {
+        x: 0,
+        y: 0,
+      },
+      width: 15,
+      height: 15,
+    },
+  ];
   game.enemies = [];
   game.enemySpawnTimer = 1;
   game.powerupSpawnTimer = 10;
@@ -485,30 +474,20 @@ function resetGame(game, gameWidth, gameHeight) {
       y: 0,
       width: 20,
       height: 500,
-      velocity: 0,
     },
     {
       x: 1650,
       y: 420,
       width: 20,
       height: 80,
-      velocity: 0,
     },
   ];
   game.goal = [
     {
       x: 4150,
-      y: 280,
-      width: 10,
-      height: 150,
-      velocity: 0,
-    },
-    {
-      x: 4150,
-      y: 250,
+      y: 270,
       width: 50,
-      height: 35,
-      velocity: 0,
+      height: 150,
     },
   ];
   game.ground = [
@@ -517,137 +496,111 @@ function resetGame(game, gameWidth, gameHeight) {
       y: 470,
       width: 500,
       height: 30,
-      velocity: 0,
     },
     {
       x: 550,
       y: 470,
       width: 500,
       height: 30,
-      velocity: 0,
     },
     {
       x: 1150,
       y: 470,
       width: 500,
       height: 30,
-      velocity: 0,
     },
     {
       x: 1650,
       y: 420,
       width: 500,
       height: 80,
-      velocity: 0,
     },
     {
       x: 2450,
       y: 420,
       width: 500,
       height: 80,
-      velocity: 0,
     },
     {
       x: 3700,
       y: 420,
       width: 500,
       height: 80,
-      velocity: 0,
     },
   ];
   game.platforms = [
-    // vänstervägen
-    {
-      x: 0,
-      y: 0,
-      width: 20,
-      height: 500,
-      velocity: 0,
-    },
     // platformar
     {
       x: 800,
-      y: 200,
+      y: 250,
       width: -300,
       height: 10,
-      velocity: 0,
     },
     {
       x: 800,
       y: 350,
       width: -300,
       height: 10,
-      velocity: 0,
     },
     {
       x: 0,
-      y: 200,
+      y: 250,
       width: 200,
       height: 10,
-      velocity: 0,
     },
     {
       x: 270,
-      y: 200,
+      y: 250,
       width: 150,
       height: 10,
-      velocity: 0,
     },
     {
       x: 270,
       y: 350,
       width: 150,
       height: 10,
-      velocity: 0,
     },
     {
       x: 1200,
       y: 350,
       width: 150,
       height: 10,
-      velocity: 0,
     },
     {
       x: 1200,
       y: 200,
       width: 150,
       height: 10,
-      velocity: 0,
     },
     {
       x: 1800,
       y: 100,
       width: 150,
       height: 10,
-      velocity: 0,
     },
     {
       x: 2200,
       y: 350,
       width: 150,
       height: 10,
-      velocity: 0,
     },
     {
       x: 3000,
       y: 350,
       width: 150,
       height: 10,
-      velocity: 0,
     },
     {
       x: 3300,
       y: 350,
       width: 150,
       height: 10,
-      velocity: 0,
     },
     {
       x: 3500,
       y: 350,
       width: 150,
       height: 10,
-      velocity: 0,
     },
   ];
 

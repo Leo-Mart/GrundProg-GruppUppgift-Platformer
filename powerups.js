@@ -1,24 +1,9 @@
-let powerupImg = document.querySelector('#powerup');
-
-export function spawnPowerups(game) {
-  let powerup = {
-    x: 1300,
-    y: 50,
-    velocity: {
-      x: 0,
-      y: 0,
-    },
-    width: 15,
-    height: 15,
-  };
-
-  game.powerups.push(powerup);
-}
+let powerupImg = new Image();
+powerupImg.src = './images/powerup.png';
 
 export function drawPowerUps(ctx, game) {
   game.powerups.forEach((powerup) => {
-    ctx.fillStyle = 'yellow';
-    ctx.fillRect(powerup.x, powerup.y, powerup.width, powerup.height);
+    ctx.drawImage(powerupImg, powerup.x, powerup.y);
   });
 }
 

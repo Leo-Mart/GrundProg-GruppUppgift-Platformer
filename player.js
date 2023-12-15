@@ -1,15 +1,5 @@
 let playerImg = document.querySelector('#player');
 
-/* const lookright = player.height * 1;
-const lookleft = player.height * 2;
-
-const walkcycle = [3, 4, 5];
-let currentWalkFrame = player.width * 3;
-
-const standing = player.width * 1;
-const jumping = player.width * 2;
-const hurt = player.width * 6; */
-
 const lookright = 0;
 const lookleft = 36;
 
