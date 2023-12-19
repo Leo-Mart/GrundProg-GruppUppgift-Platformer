@@ -21,9 +21,9 @@ export function updatePlayer(game) {
     player.x += player.velocity.x * game.deltaTime;
   }
   // "gravitation" på spelaren, så den faller nedåt så länge den inte hoppar
-  player.y += player.velocity.y;
-  player.velocity.y += 30 * game.deltaTime;
-  //player.velocity.y += 0.2;
+  player.velocity.y += 1000 * game.deltaTime;
+  player.y += player.velocity.y * game.deltaTime;
+  // console.log(player.x, player.y);
 }
 
 // Funktioner som ritar ut spelaren

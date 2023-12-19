@@ -1,5 +1,7 @@
 import { isColliding } from './collision.js';
 
+let enemyHitSound = new Audio('./sounds/scream.ogg');
+enemyHitSound.volume = 0.2;
 export function drawLasers(ctx, game) {
   for (let laser of game.lasers) {
     ctx.fillStyle = 'yellow';
@@ -18,6 +20,8 @@ export function updateLasers(game) {
         let enemy = game.enemies[l];
 
         if (isColliding(laser, enemy)) {
+          enemyHitSound.load();
+          enemyHitSound.play();
           game.lasers.splice(i--, 1);
           game.enemies.splice(l--, 1);
           game.points += 1;

@@ -58,7 +58,6 @@ export function drawEnemies(ctx, game) {
         enemyImg,
         currentWalkFrame,
         lookleft,
-
         enemy.width,
         enemy.height,
         enemy.x,
@@ -79,7 +78,6 @@ export function drawEnemies(ctx, game) {
         enemyImg,
         currentWalkFrame,
         lookright,
-
         enemy.width,
         enemy.height,
         enemy.x,

@@ -9,7 +9,8 @@ import {
 import {
   isColliding,
   collisionPlayerplatform,
-  collisionEntityPlatform,
+  collisionEnemyPlatform,
+  collisionObjectPlatform,
 } from './collision.js';
 import { timecount, pointcounter, powererdupStatus } from './points&time.js';
 import { drawPowerUps, updatePowerUps } from './powerups.js';
@@ -24,6 +25,16 @@ let canvas = document.getElementById('canvas');
 let ctx = canvas.getContext('2d');
 let backgroundImg = new Image();
 backgroundImg.src = './images/bg_platform.png';
+let jumpSound = new Audio('./sounds/jump.mp3');
+let pewSound = new Audio('./sounds/pewpew.mp3');
+let powerupSound = new Audio('./sounds/powerup.mp3');
+let winSound = new Audio('./sounds/youwin.mp3');
+let loseSound = new Audio('./sounds/youlose.mp3');
+
+jumpSound.volume = 0.2;
+pewSound.volume = 0.2;
+powerupSound.volume = 0.5;
+winSound.volume = 0.5;
 
 canvas.width = 1000;
 canvas.height = 500;
@@ -47,6 +58,7 @@ function initGame(gameWidth, gameHeight) {
         left: false,
         right: false,
         jump: false,
+        down: false,
       },
       state: {
         airtime: false,
@@ -118,13 +130,13 @@ function initGame(gameWidth, gameHeight) {
         height: 30,
       },
       {
-        x: 550,
+        x: 600,
         y: 470,
         width: 500,
         height: 30,
       },
       {
-        x: 1150,
+        x: 1200,
         y: 470,
         width: 500,
         height: 30,
@@ -153,13 +165,13 @@ function initGame(gameWidth, gameHeight) {
       {
         x: 800,
         y: 250,
-        width: -300,
+        width: 300,
         height: 10,
       },
       {
         x: 800,
         y: 350,
-        width: -300,
+        width: 300,
         height: 10,
       },
       {
@@ -239,14 +251,16 @@ window.addEventListener('keydown', (event) => {
       game.player.y + game.player.height <= canvas.height &&
       game.player.velocity.y === 0
     ) {
+      jumpSound.load();
+      jumpSound.play();
       game.player.keys.jump = true;
-      game.player.velocity.y = -1200 * game.deltaTime;
+      game.player.velocity.y = -500;
       game.player.state.airtime = true;
     }
     // låter spelaren falla genom platformar
   } else if (event.key === 's' && game.player.y <= 350) {
-    game.player.velocity.y += 40 * game.deltaTime;
     game.player.state.airtime = true;
+    game.player.keys.down = true;
   }
 
   if (event.key === 'a' && game) {
@@ -271,8 +285,12 @@ window.addEventListener('keyup', (event) => {
   if (event.key === ' ' && game.player.powererdup === true) {
     if (game.player.state.right === true) {
       shootLaserRight(game, game.player, true);
+      pewSound.load();
+      pewSound.play();
     } else if (game.player.state.left === true) {
       shootLaserLeft(game, game.player, true);
+      pewSound.load();
+      pewSound.play();
     }
   }
 });
@@ -285,24 +303,42 @@ function tick(ctx, game) {
   // rensar ut canvas för att sedan rita över det igen
   ctx.clearRect(0, 0, game.gameWidth, game.gameHeight);
 
-  // ritar ut spelaren
-  drawPlayer(ctx, game.player);
   // hanterar spelarens rörelser och "gravitation"
   updatePlayer(game);
+  // ritar ut spelaren
+  drawPlayer(ctx, game.player);
 
   // kollision mellan spelare och platformar
-  collisionPlayerplatform(game.player, game.platforms);
+  collisionPlayerplatform(game.player, game.platforms, game);
   // kollision mellan spelare och marken
-  collisionPlayerplatform(game.player, game.ground);
+  collisionPlayerplatform(game.player, game.ground, game);
   // kollision mellan fiender och platformar
-  collisionEntityPlatform(game.enemies, game.platforms);
-  // kollision mellan fiender och marken
-  collisionEntityPlatform(game.enemies, game.ground);
-
+  for (let i = 0; i < game.enemies.length; i++) {
+    let enemy = game.enemies[i];
+    collisionEnemyPlatform(enemy, game.platforms, game);
+    collisionEnemyPlatform(enemy, game.ground, game);
+    for (let j = 0; j < game.walls.length; j++) {
+      let wall = game.walls[j];
+      if (isColliding(enemy, wall)) {
+        if (enemy.velX < 0) {
+          enemy.velX = 200;
+          enemy.x += enemy.velX * game.deltaTime;
+          enemy.state.lookright = true;
+          enemy.state.lookleft = false;
+        } else if (enemy.velX > 0) {
+          enemy.velX = -200;
+          enemy.x += enemy.velX * game.deltaTime;
+          enemy.state.lookright = false;
+          enemy.state.lookleft = true;
+        }
+      }
+    }
+  }
   // kollision mellan powerups och platform
-  collisionEntityPlatform(game.powerups, game.platforms);
-  //kollision mellan powerups och marken
-  collisionEntityPlatform(game.powerups, game.ground);
+  for (let i = 0; i < game.powerups.length; i++) {
+    let powerup = game.powerups[i];
+    collisionObjectPlatform(powerup, game.platforms, game);
+  }
 
   // kollision med vänsterväg och hög platform, funkar typ
   for (let i = 0; i < game.walls.length; i++) {
@@ -319,9 +355,8 @@ function tick(ctx, game) {
 
   for (let i = 0; i < game.enemies.length; i++) {
     let enemy = game.enemies[i];
-    // Om spelaren landar uppepå fieneden
     if (isColliding(game.player, enemy)) {
-      alert('oh no, you lost!');
+      loseSound.play();
       resetGame(game, canvas.width, canvas.height);
     }
 
@@ -335,7 +370,7 @@ function tick(ctx, game) {
   for (let i = 0; i < game.goal.length; i++) {
     let goal = game.goal[i];
     if (isColliding(game.player, goal)) {
-      alert('You win!');
+      winSound.play();
       resetGame(game, canvas.width, canvas.height);
     }
   }
@@ -344,6 +379,7 @@ function tick(ctx, game) {
   for (let i = 0; i < game.powerups.length; i++) {
     let powerup = game.powerups[i];
     if (isColliding(game.player, powerup)) {
+      powerupSound.play();
       game.player.powererdup = true;
       game.powerups.splice(i, 1);
     }
@@ -351,7 +387,7 @@ function tick(ctx, game) {
 
   // om spelaren trillar genom hålen förlorar den
   if (game.player.y >= canvas.height) {
-    alert('oh no, you lost!');
+    loseSound.play();
     resetGame(game, canvas.width, canvas.height);
   }
   // scrollar spelet så länge spelare håller ner antigen a eller d
@@ -365,6 +401,7 @@ function tick(ctx, game) {
     game.ground.forEach((ground) => {
       ground.x -= 300 * game.deltaTime;
     });
+
     game.powerups.forEach((powerup) => {
       powerup.x -= 300 * game.deltaTime;
     });
@@ -424,11 +461,6 @@ function tick(ctx, game) {
 
   requestAnimationFrame(() => tick(ctx, game));
 }
-// ************ TODO ******************
-// collision.
-// eventuellt lite design
-// eventuellt highscore och sånt, kanske spara i localstorage
-// rensa ut koden
 
 // denna funktion ställer om allt till standardvärden, används när vi vill återställa/starta om spelet.
 function resetGame(game, gameWidth, gameHeight) {
@@ -498,13 +530,13 @@ function resetGame(game, gameWidth, gameHeight) {
       height: 30,
     },
     {
-      x: 550,
+      x: 600,
       y: 470,
       width: 500,
       height: 30,
     },
     {
-      x: 1150,
+      x: 1200,
       y: 470,
       width: 500,
       height: 30,
@@ -533,13 +565,13 @@ function resetGame(game, gameWidth, gameHeight) {
     {
       x: 800,
       y: 250,
-      width: -300,
+      width: 300,
       height: 10,
     },
     {
       x: 800,
       y: 350,
-      width: -300,
+      width: 300,
       height: 10,
     },
     {
