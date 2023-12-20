@@ -3,12 +3,9 @@ let enemyImg = document.querySelector('#enemy');
 const lookright = 30;
 const lookleft = 0;
 
-/* const walkcycle = [2, 3, 4]; */
 let currentWalkFrame = 30;
 let framecount = 0;
 
-/* const standing = 0;
-const jumping = 120; */
 const hurt = 150;
 
 export function spawnEnemy(game) {

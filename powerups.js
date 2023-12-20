@@ -11,6 +11,7 @@ export function updatePowerUps(game) {
   for (let i = 0; i < game.powerups.length; i++) {
     let powerup = game.powerups[i];
 
+    // gravitation
     powerup.y += powerup.velocity.y;
     powerup.velocity.y += 30 * game.deltaTime;
   }

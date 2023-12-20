@@ -18,10 +18,14 @@ export function drawPlatforms(ctx, game) {
   });
 
   game.platforms.forEach((platform) => {
+    // sparar origo (0, 0)
     ctx.save();
+    // flyttar platformens koordinater origo (0,0)
     ctx.translate(platform.x, platform.y);
+    // fyller med mönstret
     ctx.fillStyle = platformPattern;
     ctx.fillRect(0, 0, platform.width, platform.height);
+    //återställer riktiga origo (0,0)
     ctx.restore();
   });
   game.ground.forEach((ground) => {

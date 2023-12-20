@@ -42,7 +42,7 @@ export function collisionEnemyPlatform(player, platform, game) {
       player.x <= platform.x + platform.width
     ) {
       player.velocity.y = 0;
-      player.y = platform.y - player.height; //- player.height;
+      player.y = platform.y - player.height;
       player.state.airtime = false;
     }
   });

@@ -25,6 +25,7 @@ let canvas = document.getElementById('canvas');
 let ctx = canvas.getContext('2d');
 let backgroundImg = new Image();
 backgroundImg.src = './images/bg_platform.png';
+
 let jumpSound = new Audio('./sounds/jump.mp3');
 let pewSound = new Audio('./sounds/pewpew.mp3');
 let powerupSound = new Audio('./sounds/powerup.mp3');

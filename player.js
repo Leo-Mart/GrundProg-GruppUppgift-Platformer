@@ -3,13 +3,10 @@ let playerImg = document.querySelector('#player');
 const lookright = 0;
 const lookleft = 36;
 
-const walkcycle = [3, 4, 5, 6];
 let currentWalkFrame = 50;
 let framecount = 0;
 
-const standing = 0;
 const jumping = 25;
-const hurt = 125;
 
 // Funktion som hanterar rörelselogik hos spelaren
 export function updatePlayer(game) {
@@ -103,7 +100,7 @@ export function drawPlayer(ctx, player) {
       ctx.drawImage(
         playerImg,
         0,
-        35,
+        36,
         player.width,
         player.height,
         player.x,
